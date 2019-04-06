@@ -68,7 +68,7 @@ ConditionalSampler <- R6Class("ConditionalSampler", list(
     model$rfm <- ranger(as.formula(formula.string), data=self$dataset$data,
                   sample.fraction = min(2000/self$dataset$nrows, 1),
                   num.trees =100,
-                  min.node.size = min(2, ceiling(log(self$dataset$nrows))),
+                  min.node.size = min(5, ceiling(log(self$dataset$nrows))),
                   mtry=min(3, length(self$x.vars)))
     class(model) <- "RF"
     model
