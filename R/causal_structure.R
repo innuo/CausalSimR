@@ -17,8 +17,10 @@ CausalStructure <- R6Class("CausalStructure", list(
     g <- igraph::add_edges(g, array(t(bn$arcs)))
     self$causal.graph <- g
     self$vars.topo.sorted <- names(topo_sort(g))
-    for(v in self$dataset$col.names.to.model)
-      self$parents[[v]] <- names(neighbors(g, v, mode = "in"))
+    self$parents <- list()
+    for(v in self$dataset$col.names.to.model){
+       self$parents[[v]] <- names(neighbors(g, v, mode = "in"))
+    }
   }
 
   )

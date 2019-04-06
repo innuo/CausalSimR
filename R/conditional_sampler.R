@@ -17,7 +17,7 @@ ConditionalSampler <- R6Class("ConditionalSampler", list(
 
   learn = function(){
     learn.method <- self$.rf_sampler
-    if(is.null(self$x.vars)){
+    if(length(self$x.vars) == 0){
       if(self$y.type == "numeric")
         learn.method <-  self$.quantile_sampler
       else
@@ -51,12 +51,14 @@ ConditionalSampler <- R6Class("ConditionalSampler", list(
     model
   },
 
-  .draw.Quantile = function(n, ...){
+  .draw.Quantile = function(parent.data){
+    n <- nrow(parent.data)
     y <- quantile(self$model$vec, probs=runif(n), na.rm = TRUE)
     y
   },
 
-  .draw.Factor = function(n, ...){
+  .draw.Factor = function(parent.data){
+    n <- nrow(parent.data)
     y <- sample(self$model$table$a, size = n, replace=TRUE, prob=amodel$table$Freq)
     y
   },
@@ -75,7 +77,7 @@ ConditionalSampler <- R6Class("ConditionalSampler", list(
 
   },
 
-  .draw.RF = function(data){
+  .draw.RF = function(parent.data){
     preds <- predict(self$model$rfm, data, predict.all=TRUE)
     tree.num <- sample(1:ncol(preds$predictions), 1)
     y <- preds$predictions[,tree.num]
