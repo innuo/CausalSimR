@@ -1,4 +1,4 @@
-DataSet <- R6Class("DataSet", list(
+DataSet <- R6::R6Class("DataSet", list(
   data = NULL,
   col.names.to.model = NULL,
   col.types = NULL,

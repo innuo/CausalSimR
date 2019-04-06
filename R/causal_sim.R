@@ -1,4 +1,4 @@
-CausalSimModel <- R6Class("CausalSimModel", list(
+CausalSimModel <- R6::R6Class("CausalSimModel", list(
   options = NULL,
   dataset = NULL,
   structure = NULL,
@@ -6,7 +6,8 @@ CausalSimModel <- R6Class("CausalSimModel", list(
   initialize = function(dataset, options=NULL) {
     self$dataset <- dataset
     self$options <- options
-    self$structure <- CasualStructure$new(dataset, options)
+    self$structure <- CausalStructure$new(dataset, options)
+    self$structure$learn_structure()
     for(v in self$dataset$col.names.to.model){
       self$conditional.samplers[[v]] <- ConditionalSampler$new(dataset,
                                                                y.var = v,
@@ -25,10 +26,16 @@ CausalSimModel <- R6Class("CausalSimModel", list(
   sample = function(n){
     sample.df <- data.frame(matrix(NA, nrow=n, ncol=self$dataset$ncols))
     names(sample.df) <- self$dataset$col.names.to.model
-    for(v in structure$vars.topo.sorted){
+    for(v in self$structure$vars.topo.sorted){
       sample.df[[v]] <- self$conditional.samplers[[v]]$draw(sample.df)
     }
     sample.df
+  },
+
+  plot = function(){
+    plot(self$structure$causal.graph)
   }
+
+
   )
 )

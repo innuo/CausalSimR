@@ -1,4 +1,4 @@
-ConditionalSampler <- R6Class("ConditionalSampler", list(
+ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   dataset = NULL,
   x.vars = NULL,
   y.var = NULL,
@@ -39,14 +39,14 @@ ConditionalSampler <- R6Class("ConditionalSampler", list(
   },
 
   .quantile_sampler = function(){
-    model <- list(vec=self$dataset[[self$y.var]])
+    model <- list(vec=self$dataset$data[[self$y.var]])
     class(model) <- "Quantile"
     model
   },
 
   .factor_sampler = function(){
     model <- list()
-    model$table <- as.data.frame(table(self$dataset[[self$y.var]]))
+    model$table <- as.data.frame(table(self$dataset$data[[self$y.var]]))
     class(model) <- "Factor"
     model
   },
@@ -58,8 +58,9 @@ ConditionalSampler <- R6Class("ConditionalSampler", list(
   },
 
   .draw.Factor = function(parent.data){
+    #browser()
     n <- nrow(parent.data)
-    y <- sample(self$model$table$a, size = n, replace=TRUE, prob=amodel$table$Freq)
+    y <- sample(self$model$table[,1], size = n, replace=TRUE, prob=self$model$table$Freq)
     y
   },
 
@@ -70,7 +71,7 @@ ConditionalSampler <- R6Class("ConditionalSampler", list(
     model$rfm <- ranger(as.formula(formula.string), data=self$dataset$data,
                   sample.fraction = min(2000/self$dataset$nrows, 1),
                   num.trees =100,
-                  min.node.size = min(5, ceiling(log(self$dataset$nrows))),
+                  min.node.size = 1,
                   mtry=min(3, length(self$x.vars)))
     class(model) <- "RF"
     model
@@ -78,7 +79,8 @@ ConditionalSampler <- R6Class("ConditionalSampler", list(
   },
 
   .draw.RF = function(parent.data){
-    preds <- predict(self$model$rfm, data, predict.all=TRUE)
+    preds <- predict(self$model$rfm, parent.data, predict.all=TRUE)
+    browser()
     tree.num <- sample(1:ncol(preds$predictions), 1)
     y <- preds$predictions[,tree.num]
     if(self$y.type == "factor")
