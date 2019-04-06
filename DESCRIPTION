@@ -1,0 +1,11 @@
+Package: CausalSimR
+Type: Package
+Title: Simplified Causal Modeling and Simulation
+Version: 0.1.0
+Author: Harsha Veeramchaneni
+Maintainer: Harsha Veeramachaneni <abc@somewhere.net>
+Description: Just for experimentation
+Imports: R6, bnlearn, ranger, igraph
+License: Mine
+Encoding: UTF-8
+LazyData: true
