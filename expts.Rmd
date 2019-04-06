@@ -1,0 +1,48 @@
+---
+title: "Expts"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(GGally)
+library(CausalSimR)
+library(cowplot)
+test_sampler = function(full.data = iris, train.sample.size, samples.to.draw, mapping){
+  
+  data <- full.data[sample(1:nrow(full.data), train.sample.size),]
+  dataset <- DataSet$new(data)
+  sim <- CausalSimModel$new(dataset)
+  sim$learn()
+  sampled.data <- sim$sample(samples.to.draw)
+  
+  sim$plot()
+  p1 <- ggpairs(full.data, mapping, 
+                upper = list(continuous = wrap("density", alpha = 0.5), combo = "box_no_facet"),
+                lower = list(continuous = wrap("points", alpha = 0.3), combo = wrap("dot_no_facet", alpha = 0.4)),
+                title=sprintf("Full Data: %d samples",nrow(full.data)))
+  p2 <- ggpairs(data, mapping, 
+                upper = list(continuous = wrap("density", alpha = 0.5), combo = "box_no_facet"),
+                lower = list(continuous = wrap("points", alpha = 0.3), combo = wrap("dot_no_facet", alpha = 0.4)),
+              title=sprintf("Train Data: %d samples",nrow(data)))
+  p3 <- ggpairs(sampled.data, mapping, 
+                upper = list(continuous = wrap("density", alpha = 0.5), combo = "box_no_facet"),
+                lower = list(continuous = wrap("points", alpha = 0.3), combo = wrap("dot_no_facet", alpha = 0.4)),
+title=sprintf("Sim Data: %d samples",nrow(sampled.data)))
+  plot_grid(ggmatrix_gtable(p1), ggmatrix_gtable(p2), ggmatrix_gtable(p3), nrow=3)
+}
+```
+
+## IRIS dataset
+```{r, fig.width=8, fig.height=24, message=FALSE}
+test_sampler(iris, train.sample.size = 100, samples.to.draw = 5000,  mapping=ggplot2::aes(colour=Species))
+```
+
+## 5D dataset
+```{r, fig.width=8, fig.height=24, message=FALSE}
+df.5d <- read.csv("~/Downloads/5d.csv")
+test_sampler(df.5d, train.sample.size = 500, samples.to.draw = 5000, mapping=ggplot2::aes(colour=Product))
+```
