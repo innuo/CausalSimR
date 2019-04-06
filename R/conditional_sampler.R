@@ -68,7 +68,7 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   .rf_sampler = function(){
     model <- list()
     formula.string <- paste0(self$y.var, " ~ ", paste0(self$x.vars, collapse="+"))
-    model$rfm <- ranger(as.formula(formula.string), data=self$dataset$data,
+    model$rfm <- ranger::ranger(as.formula(formula.string), data=self$dataset$data,
                   sample.fraction = min(1000/self$dataset$nrows, 1),
                   num.trees = min(length(self$x.vars) * 30, 100),
                   min.node.size = min(2, ceiling(log(self$dataset$nrows))),
@@ -82,7 +82,7 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   },
 
   .draw.RF = function(parent.data){
-    pred <- predict(self$model$rfm, parent.data, type="terminalNodes")
+    pred <- ranger:::predict.ranger(self$model$rfm, parent.data, type="terminalNodes")
     sample.trees <- .sample.vec(1:pred$num.trees, nrow(parent.data), replace=T)
     sample.trees.leaves <- cbind(sample.trees, pred$predictions[cbind(1:nrow(parent.data), sample.trees)])
 
