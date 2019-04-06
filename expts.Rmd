@@ -3,14 +3,14 @@ title: "Expts"
 output: html_document
 ---
 
-```{r setup, include=FALSE, echo=FALSE}
+```{r setup, include=FALSE, echo=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{r}
 library(GGally)
 library(CausalSimR)
 library(cowplot)
+```
+
+```{r}
 test_sampler = function(full.data = iris, train.sample.size, samples.to.draw, mapping){
   
   data <- full.data[sample(1:nrow(full.data), train.sample.size),]
@@ -44,5 +44,5 @@ test_sampler(iris, train.sample.size = 100, samples.to.draw = 5000,  mapping=ggp
 ## 5D dataset
 ```{r, fig.width=8, fig.height=24, message=FALSE}
 df.5d <- read.csv("~/Downloads/5d.csv")
-test_sampler(df.5d, train.sample.size = 500, samples.to.draw = 5000, mapping=ggplot2::aes(colour=Product))
+test_sampler(df.5d, train.sample.size = 500, samples.to.draw = 5000, mapping=ggplot2::aes(colour=Channel))
 ```
