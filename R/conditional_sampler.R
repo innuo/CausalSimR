@@ -60,7 +60,7 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   .draw.Factor = function(parent.data){
     #browser()
     n <- nrow(parent.data)
-    y <- sample(self$model$table[,1], size = n, replace=TRUE, prob=self$model$table$Freq)
+    y <- .sample.vec(self$model$table[,1], size = n, replace=TRUE, prob=self$model$table$Freq)
     y
   },
 
@@ -69,25 +69,40 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
     model <- list()
     formula.string <- paste0(self$y.var, " ~ ", paste0(self$x.vars, collapse="+"))
     model$rfm <- ranger(as.formula(formula.string), data=self$dataset$data,
-                  sample.fraction = min(2000/self$dataset$nrows, 1),
-                  num.trees =100,
-                  min.node.size = 1,
+                  sample.fraction = min(1000/self$dataset$nrows, 1),
+                  num.trees = min(length(self$x.vars) * 30, 100),
+                  min.node.size = min(2, ceiling(log(self$dataset$nrows))),
                   mtry=min(3, length(self$x.vars)))
+
+    model$terminal.node.matrix <- predict(model$rfm, self$dataset$data, type="terminalNodes")$predictions
+    model$y.train <- self$dataset$data[[self$y.var]]
     class(model) <- "RF"
     model
 
   },
 
   .draw.RF = function(parent.data){
-    preds <- predict(self$model$rfm, parent.data, predict.all=TRUE)
-    browser()
-    tree.num <- sample(1:ncol(preds$predictions), 1)
-    y <- preds$predictions[,tree.num]
-    if(self$y.type == "factor")
-      y <- levels(self$dataset$data[[self$y.var]])[y]
+    pred <- predict(self$model$rfm, parent.data, type="terminalNodes")
+    sample.trees <- .sample.vec(1:pred$num.trees, nrow(parent.data), replace=T)
+    sample.trees.leaves <- cbind(sample.trees, pred$predictions[cbind(1:nrow(parent.data), sample.trees)])
+
+    sample.from.leaf= function(i){
+      tree <- sample.trees.leaves[i,1]
+      leaf <- sample.trees.leaves[i,2]
+      y.train.leaf <- self$model$y.train[self$model$terminal.node.matrix[,tree] == leaf]
+      ys <- .sample.vec(y.train.leaf, 1)
+      ys
+
+    }
+    y <- do.call(c, lapply(1:nrow(parent.data), sample.from.leaf))
+
+    if(self$y.type == "factor") y <- factor(levels(self$model$y.train)[y], levels=levels(self$model$y.train))
     y
   }
 
 )
 )
 
+.sample.vec = function(x, ...){
+  x[sample(length(x), ...)]
+}
