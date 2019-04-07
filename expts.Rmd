@@ -16,7 +16,8 @@ test_sampler = function(full.data = iris, train.sample.size, samples.to.draw, ma
   data <- full.data[sample(1:nrow(full.data), train.sample.size),]
   dataset <- DataSet$new(data)
   sim <- CausalSimModel$new(dataset)
-  sim$learn()
+  sim$learn_structure()
+  sim$learn_samplers()
   sampled.data <- sim$sample(samples.to.draw)
   
   sim$plot()
@@ -38,7 +39,7 @@ title=sprintf("Sim Data: %d samples",nrow(sampled.data)))
 
 ## IRIS dataset
 ```{r, fig.width=8, fig.height=24, message=FALSE}
-test_sampler(iris, train.sample.size = 100, samples.to.draw = 5000,  mapping=ggplot2::aes(colour=Species))
+#test_sampler(iris, train.sample.size = 100, samples.to.draw = 5000,  mapping=ggplot2::aes(colour=Species))
 ```
 
 ## 5D dataset

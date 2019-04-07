@@ -7,17 +7,29 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     self$dataset <- dataset
     self$options <- options
     self$structure <- CausalStructure$new(dataset, options)
+   },
+
+  structure_to_json = function(){
+    str = toJSON(self$structure$to_list(), pretty = TRUE)
+  },
+
+  structure_from_json = function(json.string){
+    self$structure$from_list(fromJSON(json.string))
+  },
+
+  learn_structure = function(){
     self$structure$learn_structure()
+  },
+
+  learn_samplers = function(){
     for(v in self$dataset$col.names.to.model){
-      self$conditional.samplers[[v]] <- ConditionalSampler$new(dataset,
+      self$conditional.samplers[[v]] <- ConditionalSampler$new(self$dataset,
                                                                y.var = v,
                                                                x.vars=self$structure$parents[[v]],
                                                                options=options)
     }
-  },
 
-  learn = function(){
-    self$structure$learn_structure()
+
     for(v in self$dataset$col.names.to.mode){
       self$conditional.samplers[[v]]$learn()
     }
