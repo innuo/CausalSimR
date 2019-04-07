@@ -9,12 +9,17 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     self$structure <- CausalStructure$new(dataset, options)
    },
 
-  structure_to_json = function(){
-    str = toJSON(self$structure$to_list(), pretty = TRUE)
+  structure_to_json_string = function(){
+    str = jsonlite::toJSON(self$structure$to_list(), pretty = TRUE)
   },
 
-  structure_from_json = function(json.string){
-    self$structure$from_list(fromJSON(json.string))
+  structure_from_json_file = function(json.file){
+    str = readChar(json.file, file.info(json.file)$size)
+    self$structure_from_json_string(str)
+  },
+
+  structure_from_json_string = function(json.string){
+    self$structure$from_list(jsonlite::fromJSON(json.string))
   },
 
   learn_structure = function(){
