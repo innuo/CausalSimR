@@ -16,7 +16,8 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   },
 
   learn = function(){
-    learn.method <- self$.rf_sampler
+    #learn.method <- self$.rf_sampler
+    learn.method <- self$.kernelized_sampler
     if(length(self$x.vars) == 0){
       if(self$y.type == "numeric")
         learn.method <-  self$.quantile_sampler
@@ -28,7 +29,8 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   },
 
   draw = function(...){
-    draw.method <- self$.draw.RF
+    #draw.method <- self$.draw.RF
+    draw.method <- self$.draw.KS
     if(class(self$model) == "Factor")
       draw.method <- self$.draw.Factor
     else if(class(self$model) == "Quantile")
@@ -64,6 +66,19 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
     y
   },
 
+
+  .kernelized_sampler = function(){
+    model <- list()
+    formula.string <- paste0(self$y.var, " ~ ", paste0(self$x.vars, collapse="+"), "-1")
+    model$ks <- kernelized_sampler(as.formula(formula.string), self$dataset$data)
+    class(model) <- "KS"
+    model
+  },
+
+  .draw.KS = function(parent.data){
+    y <- predict(self$model$ks, parent.data)
+    y
+  },
   #TODO: read from options
   .rf_sampler = function(){
     model <- list()

@@ -35,6 +35,7 @@ kernelized_sampler = function(formula, data, parameters=list()){
 
 
 predict.KernelizedSampler = function(model, data){
+  options(na.action='na.pass')
   X <- scale(model.matrix(model$formula, data), center = model$X.center, scale = model$X.scale)
   Xk = make_kernel_matrix(X, model$prototypes, model$parameters)
   if(model$type == "classification"){
@@ -45,7 +46,7 @@ predict.KernelizedSampler = function(model, data){
   else{
     y.hat.scaled <- predict(model$mean.regressor, Xk)$predictions
     y.vars <-  pmax(predict(model$var.regressor, Xk)$predictions, rep(0, length(y.hat.scaled))) + 0.01
-    y.scaled <- y.hat.scaled + rnorm(nrow(data), sd = sqrt(yvars))
+    y.scaled <- y.hat.scaled + rnorm(nrow(data), sd = sqrt(y.vars))
     y <- y.scaled * model$y.scale + model$y.center
   }
   y
@@ -53,9 +54,9 @@ predict.KernelizedSampler = function(model, data){
 
 make_kernel_matrix = function(X, prototypes, parameters){
   if(is.null(parameters$kernel))
-    kernel.fun <- polydot(degree=2)
+    kernel.fun <- kernlab::polydot(degree=2)
   else
-    kernel.fun <- do.call(get(parameters$kernel), parameters$kernel_args)
+    kernel.fun <- do.call(get(paste0("kernlab::",parameters$kernel)), parameters$kernel_args)
 
   Xk = kernlab::kernelMatrix(kernel.fun, X, prototypes)
   Xk

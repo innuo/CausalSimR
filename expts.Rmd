@@ -39,7 +39,7 @@ title=sprintf("Sim Data: %d samples",nrow(sampled.data)))
 
 ## IRIS dataset
 ```{r, fig.width=8, fig.height=24, message=FALSE}
-#test_sampler(iris, train.sample.size = 100, samples.to.draw = 5000,  mapping=ggplot2::aes(colour=Species))
+test_sampler(iris, train.sample.size = 100, samples.to.draw = 5000,  mapping=ggplot2::aes(colour=Species))
 ```
 
 ## 5D dataset
