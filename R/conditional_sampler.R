@@ -12,7 +12,6 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
     self$y.type <- self$dataset$col.types[y.var]
     self$x.vars <- x.vars
     self$options <- options
-    self$learn()
   },
 
   learn = function(){
