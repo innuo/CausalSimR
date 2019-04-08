@@ -9,7 +9,8 @@ kernelized_sampler = function(formula, data, parameters=list()){
 
 
   num.prototypes <- ifelse(is.null(parameters$num_prototypes), ceiling(sqrt(nrow(data))), parameters$num_prototypes)
-  model$prototypes <- X[sample(1:nrow(data), num.prototypes),]
+  model$prototypes <- X[sample(1:nrow(data), num.prototypes),, drop=FALSE]
+  #model$prototypes <- scale(lhs::maximinLHS(num.prototypes, dim(X)[2]))
 
   Xk = make_kernel_matrix(X, model$prototypes, parameters)
   if(class(y) == "factor"){
@@ -54,7 +55,8 @@ predict.KernelizedSampler = function(model, data){
 
 make_kernel_matrix = function(X, prototypes, parameters){
   if(is.null(parameters$kernel))
-    kernel.fun <- kernlab::polydot(degree=2)
+    #kernel.fun <- kernlab::rbfdot()
+    kernel.fun <- kernlab::polydot(degree=3)
   else
     kernel.fun <- do.call(get(paste0("kernlab::",parameters$kernel)), parameters$kernel_args)
 

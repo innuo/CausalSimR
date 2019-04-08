@@ -33,8 +33,6 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
                                                                x.vars=self$structure$parents[[v]],
                                                                options=options)
     }
-
-
     for(v in self$dataset$col.names.to.mode){
       self$conditional.samplers[[v]]$learn()
     }
