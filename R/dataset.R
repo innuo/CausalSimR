@@ -14,8 +14,15 @@ DataSet <- R6::R6Class("DataSet", list(
     self$data <- subset(data, select=self$col.names.to.model)
     self$nrows <- nrow(data)
     self$ncols <- length(self$col.names.to.model)
-  }
+  },
 
+  make_column = function(vec, col.name){
+    if(self$col.types[[col.name]] == "factor")
+      v = factor(vec, levels(self$data[[col.name]]))
+    else
+      v = vec
+    v
+  }
 
   )
 )
