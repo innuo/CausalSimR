@@ -1,3 +1,4 @@
+#' @export
 CausalSimModel <- R6::R6Class("CausalSimModel", list(
   options = NULL,
   dataset = NULL,

@@ -1,3 +1,4 @@
+#' @export
 CausalStructure <- R6::R6Class("CausalStructure", list(
   dataset = NULL,
   options = NULL,
