@@ -8,9 +8,9 @@ simple_nn_sampler = function(formula, data, parameters=list()){
 
   h <- 10
   m <- keras::keras_model_sequential() %>%
-    keras::layer_dense(units = h, input_shape = ncol(X), activation = 'relu') %>%
+    keras::layer_dense(units = h, input_shape = ncol(X), activation = 'relu')
     #keras::layer_dropout(0.5) %>%
-    keras::layer_dense(units = h, activation = 'relu')
+    #keras::layer_dense(units = h, activation = 'relu')
     #keras::layer_dropout(0.5)
 
   if(class(y) == "factor"){
@@ -61,7 +61,9 @@ predict.Simple.NN = function(model, data){
   }
   else{
     preds <- model$model$mean %>% predict(X)
-    y <- preds + rnorm(length(preds), 0, sd = sqrt(abs(model$model$var %>% predict(X))) + 0.001)
+    y <- preds + rnorm(length(preds), 0,
+                       sd = sqrt(pmax(model$model$var %>% predict(X) , rep(0.001, length(preds)))))
+    y <- array(y)
   }
   y
 }
