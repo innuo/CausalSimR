@@ -23,6 +23,14 @@ DataSet <- R6::R6Class("DataSet", list(
     else
       v = vec
     v
+  },
+
+  fill_missing = function(method="rf", iter=30){
+    if(any(is.na(self$data))){
+      tmp <- mice::mice(df,m=2,maxit=iter,meth=method,seed=1, printFlag = F)
+      self$data <- mice::complete(tmp)
+    }
+    for(i in 1:ncol(df)) if(class(self$data[,i]) != "factor") self$data[,i] <- as.numeric(self$data[,i])
   }
 
   )
