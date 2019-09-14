@@ -16,13 +16,18 @@ kernelized_sampler = function(formula, data, parameters=list()){
   if(class(y) == "factor"){
     model$type <- "classification"
     model$levels <- levels(y)
-    model$classifier <- LiblineaR::LiblineaR(Xk, y, type=2)
+    model$classifier <- LiblineaR::LiblineaR(Xk, y, type=6)
   }
   else{
     model$type <- "regression"
-    model$y.center <- mean(y)
-    model$y.scale <- sd(y)
-    y.scaled <- scale(y)
+    #model$y.center <- mean(y)
+    #model$y.scale <- sd(y)
+    #y.scaled <- scale(y)
+
+    y.ecdf <- ecdf(c(-Inf, y, Inf))
+    model$y <- y
+    y.scaled <- qnorm(y.ecdf(y))
+
 
     model$mean.regressor <- LiblineaR::LiblineaR(Xk, y.scaled , type=12, svr_eps=0.01)
     pred.error.squares <- (predict(model$mean.regressor, Xk)$predictions - y.scaled)^2
@@ -46,9 +51,10 @@ predict.KernelizedSampler = function(model, data){
   }
   else{
     y.hat.scaled <- predict(model$mean.regressor, Xk)$predictions
-    y.vars <-  pmax(predict(model$var.regressor, Xk)$predictions, rep(0, length(y.hat.scaled))) + 0.01
+    y.vars <-  pmax(predict(model$var.regressor, Xk)$predictions, rep(0, length(y.hat.scaled)))
     y.scaled <- y.hat.scaled + rnorm(nrow(data), sd = sqrt(y.vars))
-    y <- y.scaled * model$y.scale + model$y.center
+    #y <- y.scaled * model$y.scale + model$y.center
+    y <- quantile(model$y, pnorm(y.scaled))
   }
   y
 }

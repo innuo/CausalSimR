@@ -4,6 +4,8 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
   dataset = NULL,
   structure = NULL,
   conditional.samplers = list(),
+  markov.blanket.samplers = list(),
+
   initialize = function(dataset, options=NULL) {
     self$dataset <- dataset
     self$options <- options
@@ -33,10 +35,15 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
                                                                y.var = v,
                                                                x.vars=self$structure$parents[[v]],
                                                                options=options)
+      self$markov.blanket.samplers[[v]] <- ConditionalSampler$new(self$dataset,
+                                                               y.var = v,
+                                                               x.vars=self$structure$markov.blanket[[v]],
+                                                               options=options)
+
     }
     for(v in self$dataset$col.names.to.model){
-      #print(v)
       self$conditional.samplers[[v]]$learn()
+      self$markov.blanket.samplers[[v]]$learn()
     }
   },
 
@@ -45,7 +52,7 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     names(sample.df) <- self$dataset$col.names.to.model
     for(v in self$structure$vars.topo.sorted){
       if(is.null(do[[v]]))
-        sample.df[[v]] <- self$conditional.samplers[[v]]$draw(sample.df)
+        sample.df[[v]] <- self$dataset$make_column(self$conditional.samplers[[v]]$draw(sample.df), v)
       else{
         sample.df[[v]] <- self$dataset$make_column(rep(do[[v]], n), v)
       }
@@ -53,8 +60,19 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     sample.df
   },
 
-  fill = function(){ #fill using gibbs sampling on learned model
+  fill_gibbs = function(df.missing, num.iter = 500){ #fill using gibbs sampling on learned model
+    non.missing.inds <- !is.na(df.missing)
+    filled.df <- self$sample(nrow(df.missing)) #initial random draw
 
+    for(i in 1:ncol(filled.df)) filled.df[non.missing.inds[,i], i] <- df.missing[non.missing.inds[,i], i]
+
+    for(i in 1:num.iter){
+      for(v in self$structure$vars.topo.sorted){
+           filled.df[[v]] <- self$markov.blanket.samplers[[v]]$draw(filled.df)
+          for(i in 1:ncol(filled.df)) filled.df[non.missing.inds[,i], i] <- df.missing[non.missing.inds[,i], i]
+      }
+    }
+    filled.df
   },
 
   plot = function(){

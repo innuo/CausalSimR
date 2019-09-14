@@ -5,7 +5,7 @@ CausalStructure <- R6::R6Class("CausalStructure", list(
   causal.graph = NULL,
   vars.topo.sorted = NULL,
   parents = NULL,
-  markov_blanket=NULL,
+  markov.blanket=NULL,
 
   initialize = function(dataset, options=NULL) {
     self$dataset <- dataset
@@ -30,12 +30,12 @@ CausalStructure <- R6::R6Class("CausalStructure", list(
       self$parents[[v]] <- names(igraph::neighbors(self$causal.graph, v, mode = "in"))
     }
 
-    self$markov_blanket <- list()
+    self$markov.blanket <- list()
     for(v in self$dataset$col.names.to.model){
       children <- names(igraph::neighbors(self$causal.graph, v, mode = "out"))
       parents.of.children <- do.call(c, lapply(children, function(x) self$parents[[x]]))
       tmp <- unique(c(self$parents[[v]], children, parents.of.children))
-      self$markov_blanket[[v]] <- tmp[tmp != v]
+      self$markov.blanket[[v]] <- tmp[tmp != v]
     }
 
   },
