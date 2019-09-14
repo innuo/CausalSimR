@@ -30,7 +30,7 @@ DataSet <- R6::R6Class("DataSet", list(
       tmp <- mice::mice(df,m=2,maxit=iter,meth=method,seed=1, printFlag = F)
       self$data <- mice::complete(tmp)
     }
-    for(i in 1:ncol(df)) if(class(self$data[,i]) != "factor") self$data[,i] <- as.numeric(self$data[,i])
+    for(i in 1:ncol(self$data)) if(class(self$data[,i]) != "factor") self$data[,i] <- as.numeric(self$data[,i])
   }
 
   )
