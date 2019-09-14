@@ -40,17 +40,21 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     }
   },
 
-  sample = function(n, condition = list()){
+  sample = function(n, do = list()){
     sample.df <- data.frame(matrix(NA, nrow=n, ncol=self$dataset$ncols))
     names(sample.df) <- self$dataset$col.names.to.model
     for(v in self$structure$vars.topo.sorted){
-      if(is.null(condition[[v]]))
+      if(is.null(do[[v]]))
         sample.df[[v]] <- self$conditional.samplers[[v]]$draw(sample.df)
       else{
-        sample.df[[v]] <- self$dataset$make_column(rep(condition[[v]], n), v)
+        sample.df[[v]] <- self$dataset$make_column(rep(do[[v]], n), v)
       }
     }
     sample.df
+  },
+
+  fill = function(){ #fill using gibbs sampling on learned model
+
   },
 
   plot = function(){
