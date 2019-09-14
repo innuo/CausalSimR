@@ -31,7 +31,7 @@ DataSet <- R6::R6Class("DataSet", list(
     self$data <- na.omit(self$data)
   },
 
-  fill_missing = function(method="pmm", iter=20){
+  fill_missing = function(method="pmm", iter=10){
     if(any(is.na(self$data))){
       tmp <- mice::mice(self$data,m=2,maxit=iter,meth=method,seed=1, printFlag = F)
       self$data <- mice::complete(tmp)

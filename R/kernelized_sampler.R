@@ -16,7 +16,7 @@ kernelized_sampler = function(formula, data, parameters=list()){
   if(class(y) == "factor"){
     model$type <- "classification"
     model$levels <- levels(y)
-    model$classifier <- LiblineaR::LiblineaR(Xk, y, type=6)
+    model$classifier <- LiblineaR::LiblineaR(Xk, y, type=0)
   }
   else{
     model$type <- "regression"
@@ -31,7 +31,7 @@ kernelized_sampler = function(formula, data, parameters=list()){
 
     model$mean.regressor <- LiblineaR::LiblineaR(Xk, y.scaled , type=12, svr_eps=0.01)
     pred.error.squares <- (predict(model$mean.regressor, Xk)$predictions - y.scaled)^2
-    model$var.regressor <-  LiblineaR::LiblineaR(Xk, pred.error.squares , type=12, svr_eps=0.001)
+    model$var.regressor <-  LiblineaR::LiblineaR(Xk, pred.error.squares , type=11, svr_eps=0.001)
 
   }
   class(model) <- "KernelizedSampler"
@@ -46,7 +46,7 @@ predict.KernelizedSampler = function(model, data){
   Xk = make_kernel_matrix(X, model$prototypes, model$parameters)
   if(model$type == "classification"){
     probs <- predict(model$classifier, Xk, proba=TRUE)$probabilities
-    y <- do.call(c, lapply(1:nrow(data), function(i) sample(model$levels, 1, prob=probs[i,])))
+    y <- do.call(c, lapply(1:nrow(data), function(i) sample(colnames(probs), 1, prob=probs[i,])))
     y <- factor(y, levels=model$levels)
   }
   else{
