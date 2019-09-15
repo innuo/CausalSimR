@@ -3,12 +3,11 @@
 kernelized_sampler = function(formula, data, parameters=list()){
   X <- scale(model.matrix(formula, data))
   y <- model.extract(model.frame(formula, data), "response")
-
   model <- list(formula = formula, parameters=parameters,
                 X.center=attr(X, "scaled:center"), X.scale=attr(X, "scaled:scale"))
 
 
-  num.prototypes <- ifelse(is.null(parameters$num_prototypes), ceiling(sqrt(nrow(data))), parameters$num_prototypes)
+  num.prototypes <- ifelse(is.null(parameters$num_prototypes), 3*ceiling(sqrt(nrow(data))), parameters$num_prototypes)
   model$prototypes <- X[sample(1:nrow(data), num.prototypes),, drop=FALSE]
   #model$prototypes <- scale(lhs::maximinLHS(num.prototypes, dim(X)[2]))
 
@@ -53,6 +52,7 @@ predict.KernelizedSampler = function(model, data){
     y.hat.scaled <- predict(model$mean.regressor, Xk)$predictions
     y.vars <-  pmax(predict(model$var.regressor, Xk)$predictions, rep(0, length(y.hat.scaled)))
     y.scaled <- y.hat.scaled + rnorm(nrow(data), sd = sqrt(y.vars))
+    #y.scaled <- y.hat.scaled
     #y <- y.scaled * model$y.scale + model$y.center
     y <- quantile(model$y, pnorm(y.scaled))
   }

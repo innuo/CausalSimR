@@ -60,7 +60,7 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     sample.df
   },
 
-  fill_gibbs = function(df.missing, num.iter = 50){ #fill using gibbs sampling on learned model
+  fill_gibbs = function(df.missing, num.iter = 10){ #fill using gibbs sampling on learned model
     non.missing.inds <- !is.na(df.missing)
     filled.df <- self$sample(nrow(df.missing)) #initial random draw
 
@@ -70,7 +70,6 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
       cols <- sample(1:ncol(filled.df))
       for(j in cols){
           v <- names(filled.df)[j]
-          #if (v == "Price") browser()
           filled.df[, j] <- self$markov.blanket.samplers[[v]]$draw(filled.df)
           filled.df[non.missing.inds[,j], j] <- df.missing[non.missing.inds[,j], j]
       }
