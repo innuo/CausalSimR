@@ -60,9 +60,37 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     sample.df
   },
 
-  fill_gibbs = function(df.missing, num.iter = 10){ #fill using gibbs sampling on learned model
+  fill_gibbs = function(df.missing, num.iter=20){
+    nc <- ncol(df.missing)
+    cnames <- names(df.missing)
+    pred.mat <- matrix(0, nrow=nc, ncol=nc)
+    for (i in 1:nc){
+      v <- cnames[i]
+      if(!is.null(self$structure$markov.blanket[[v]])){
+        jinds <- match(self$structure$markov.blanket[[v]], cnames)
+        pred.mat[i,jinds] <- 1
+      }
+      else{
+        pred.mat[i,jinds] <- 1
+      }
+
+      pred.mat[i,i] <- 0 #zero diagonal
+    }
+
+    if(any(is.na(df.missing))){
+      tmp <- mice::mice(df.missing,m=2,maxit=num.iter,meth="cart",seed=1, printFlag = F)
+      df.filled <- mice::complete(tmp)
+    }
+    for(i in 1:ncol(df.filled)) if(class(df.filled[,i]) != "factor") df.filled[,i] <- as.numeric(df.filled[,i])
+    df.filled
+  },
+
+  fill_gibbs_old = function(df.missing, num.iter = 10){ #fill using gibbs sampling on learned model
     non.missing.inds <- !is.na(df.missing)
-    filled.df <- self$sample(nrow(df.missing)) #initial random draw
+
+    tmp.data <- DataSet$new(df.missing)
+    tmp.data$fill_missing()
+    filled.df <- tmp.data$data #initial random draw
 
     for(i in 1:ncol(filled.df)) filled.df[non.missing.inds[,i], i] <- df.missing[non.missing.inds[,i], i]
 
