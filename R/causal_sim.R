@@ -66,8 +66,8 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     pred.mat <- matrix(0, nrow=nc, ncol=nc)
     for (i in 1:nc){
       v <- cnames[i]
+      jinds <- match(self$structure$markov.blanket[[v]], cnames)
       if(!is.null(self$structure$markov.blanket[[v]])){
-        jinds <- match(self$structure$markov.blanket[[v]], cnames)
         pred.mat[i,jinds] <- 1
       }
       else{
@@ -81,6 +81,7 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
       tmp <- mice::mice(df.missing,m=2,maxit=num.iter,meth="cart",seed=1, printFlag = F)
       df.filled <- mice::complete(tmp)
     }
+    else df.filled <- df.missing
     for(i in 1:ncol(df.filled)) if(class(df.filled[,i]) != "factor") df.filled[,i] <- as.numeric(df.filled[,i])
     df.filled
   },
