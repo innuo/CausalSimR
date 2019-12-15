@@ -1,5 +1,6 @@
 # CausalSimR: 
 
+```
   full.data <- read.csv("../CausalSimPy/data/5d.csv")
 
   data <- full.data[sample(1:nrow(full.data), train.sample.size),]
@@ -15,3 +16,4 @@
   sim$plot()
 
   filled.gibbs <- sim$fill_gibbs(missing.data)
+```
