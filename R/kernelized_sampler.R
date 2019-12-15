@@ -3,12 +3,11 @@
 kernelized_sampler = function(formula, data, parameters=list()){
   X <- scale(model.matrix(formula, data))
   y <- model.extract(model.frame(formula, data), "response")
-
   model <- list(formula = formula, parameters=parameters,
                 X.center=attr(X, "scaled:center"), X.scale=attr(X, "scaled:scale"))
 
 
-  num.prototypes <- ifelse(is.null(parameters$num_prototypes), ceiling(sqrt(nrow(data))), parameters$num_prototypes)
+  num.prototypes <- ifelse(is.null(parameters$num_prototypes), 3*ceiling(sqrt(nrow(data))), parameters$num_prototypes)
   model$prototypes <- X[sample(1:nrow(data), num.prototypes),, drop=FALSE]
   #model$prototypes <- scale(lhs::maximinLHS(num.prototypes, dim(X)[2]))
 
@@ -16,17 +15,22 @@ kernelized_sampler = function(formula, data, parameters=list()){
   if(class(y) == "factor"){
     model$type <- "classification"
     model$levels <- levels(y)
-    model$classifier <- LiblineaR::LiblineaR(Xk, y, type=2)
+    model$classifier <- LiblineaR::LiblineaR(Xk, y, type=0)
   }
   else{
     model$type <- "regression"
-    model$y.center <- mean(y)
-    model$y.scale <- sd(y)
-    y.scaled <- scale(y)
+    #model$y.center <- mean(y)
+    #model$y.scale <- sd(y)
+    #y.scaled <- scale(y)
+
+    y.ecdf <- ecdf(c(-Inf, y, Inf))
+    model$y <- y
+    y.scaled <- qnorm(y.ecdf(y))
+
 
     model$mean.regressor <- LiblineaR::LiblineaR(Xk, y.scaled , type=12, svr_eps=0.01)
     pred.error.squares <- (predict(model$mean.regressor, Xk)$predictions - y.scaled)^2
-    model$var.regressor <-  LiblineaR::LiblineaR(Xk, pred.error.squares , type=12, svr_eps=0.001)
+    model$var.regressor <-  LiblineaR::LiblineaR(Xk, pred.error.squares , type=11, svr_eps=0.001)
 
   }
   class(model) <- "KernelizedSampler"
@@ -41,14 +45,16 @@ predict.KernelizedSampler = function(model, data){
   Xk = make_kernel_matrix(X, model$prototypes, model$parameters)
   if(model$type == "classification"){
     probs <- predict(model$classifier, Xk, proba=TRUE)$probabilities
-    y <- do.call(c, lapply(1:nrow(data), function(i) sample(model$levels, 1, prob=probs[i,])))
+    y <- do.call(c, lapply(1:nrow(data), function(i) sample(colnames(probs), 1, prob=probs[i,])))
     y <- factor(y, levels=model$levels)
   }
   else{
     y.hat.scaled <- predict(model$mean.regressor, Xk)$predictions
-    y.vars <-  pmax(predict(model$var.regressor, Xk)$predictions, rep(0, length(y.hat.scaled))) + 0.01
+    y.vars <-  pmax(predict(model$var.regressor, Xk)$predictions, rep(0, length(y.hat.scaled)))
     y.scaled <- y.hat.scaled + rnorm(nrow(data), sd = sqrt(y.vars))
-    y <- y.scaled * model$y.scale + model$y.center
+    #y.scaled <- y.hat.scaled
+    #y <- y.scaled * model$y.scale + model$y.center
+    y <- quantile(model$y, pnorm(y.scaled))
   }
   y
 }
