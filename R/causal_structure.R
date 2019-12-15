@@ -13,7 +13,7 @@ CausalStructure <- R6::R6Class("CausalStructure", list(
   },
 
   learn_structure = function(){
-    bn = bnlearn::tabu(self$dataset$data)
+    bn = bnlearn::hc(self$dataset$data)
     self$make_structure(bn$arcs)
   },
 
