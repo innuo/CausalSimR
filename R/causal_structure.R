@@ -13,25 +13,27 @@ CausalStructure <- R6::R6Class("CausalStructure", list(
   },
 
   learn_structure = function(){
+    self$dataset$fill_missing()
     bn = bnlearn::hc(self$dataset$data)
     self$make_structure(bn$arcs)
   },
 
   make_structure = function(edges){
-    g <- igraph::make_empty_graph(n = self$dataset$ncols(), directed=TRUE)
-    g <- igraph::set_vertex_attr(g, "name", index=igraph::V(g), self$dataset$col.names.to.model)
+     g <- igraph::make_empty_graph(n = self$dataset$ncols(), directed=TRUE)
+    g <- igraph::set_vertex_attr(g, "name", index=igraph::V(g),
+                                 self$dataset$col.names.to.model())
     g <- igraph::add_edges(g, array(t(as.matrix(edges))))
     self$causal.graph <- g
 
     self$vars.topo.sorted <- names(igraph::topo_sort(self$causal.graph))
 
     self$parents <- list()
-    for(v in self$dataset$col.names.to.model){
+    for(v in self$dataset$col.names.to.model()){
       self$parents[[v]] <- names(igraph::neighbors(self$causal.graph, v, mode = "in"))
     }
 
     self$markov.blanket <- list()
-    for(v in self$dataset$col.names.to.model){
+    for(v in self$dataset$col.names.to.model()){
       children <- names(igraph::neighbors(self$causal.graph, v, mode = "out"))
       parents.of.children <- do.call(c, lapply(children, function(x) self$parents[[x]]))
       tmp <- unique(c(self$parents[[v]], children, parents.of.children))

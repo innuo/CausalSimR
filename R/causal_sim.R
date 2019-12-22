@@ -44,14 +44,14 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
   },
 
   learn_samplers = function(options=NULL){
-    for(v in self$dataset$col.names.to.model){
+    for(v in self$dataset$col.names.to.model()){
       self$learn_sampler(v, options)
     }
   },
 
   sample = function(n, do = list()){
     sample.df <- data.frame(matrix(NA, nrow=n, ncol=self$dataset$ncols()))
-    names(sample.df) <- self$dataset$col.names.to.model
+    names(sample.df) <- self$dataset$col.names.to.model()
 
     for(v in self$structure$vars.topo.sorted){
       if(is.null(do[[v]])){

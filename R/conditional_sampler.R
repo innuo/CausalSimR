@@ -10,7 +10,7 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   initialize = function(dataset, y.var, x.vars = NULL, options = NULL) {
     self$dataset <- dataset
     self$y.var <- y.var
-    self$y.type <- self$dataset$col.types[y.var]
+    self$y.type <- self$dataset$col.types[[y.var]]
     self$x.vars <- x.vars
     if(is.null(options)){
       self$options <- list(mean.degree = 2,

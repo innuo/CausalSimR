@@ -2,7 +2,6 @@
 DataSet <- R6::R6Class("DataSet", list(
   raw.data = list(),
   data = NULL,
-  col.names.to.model = c(),
   col.types = c(),
   missings.filled = FALSE,
 
@@ -11,18 +10,25 @@ DataSet <- R6::R6Class("DataSet", list(
   },
 
   ncols = function(){
-    length(self$col.names.to.model)
+    length(self$col.types)
+  },
+
+  col.names.to.model = function(){
+    names(self$col.types)
   },
 
   attach_data = function(data){
     types <- do.call(rbind, lapply(data, class))
     col.ids.to.model <- which(types[,1] %in% c("numeric", "factor"))
-    self$col.names.to.model <- c(self$col.names.to.model,
-                                 row.names(types)[col.ids.to.model])
-    self$col.types <- c(self$col.types, types[col.ids.to.model])
-    names(self$col.types) <- self$col.names.to.model
 
-    tmp.data <- subset(data, select=self$col.names.to.model)
+    col.names.to.model = c()
+    for(i in col.ids.to.model){
+      name <- names(data)[i]
+      self$col.types[[name]] <- types[i]
+      col.names.to.model <- c(col.names.to.model, name)
+    }
+
+    tmp.data <- subset(data, select=col.names.to.model)
     self$data <- plyr::rbind.fill(self$data, tmp.data)
     self$raw.data[[length(self$raw.data)+1]] <- tmp.data
   },
@@ -31,7 +37,6 @@ DataSet <- R6::R6Class("DataSet", list(
     if (length(ids) == 0) {
       if(!self$missings.filled) {
         self$fill_missing()
-        self$missings.filled <- TRUE
       }
       return(self$data)
     }
@@ -71,6 +76,7 @@ DataSet <- R6::R6Class("DataSet", list(
       self$data <- mice::complete(tmp)
     }
     for(i in 1:ncol(self$data)) if(class(self$data[,i]) != "factor") self$data[,i] <- as.numeric(self$data[,i])
+    self$missings.filled <- TRUE
   }
 
   )
