@@ -18,7 +18,7 @@ CausalStructure <- R6::R6Class("CausalStructure", list(
   },
 
   make_structure = function(edges){
-    g <- igraph::make_empty_graph(n = self$dataset$ncols, directed=TRUE)
+    g <- igraph::make_empty_graph(n = self$dataset$ncols(), directed=TRUE)
     g <- igraph::set_vertex_attr(g, "name", index=igraph::V(g), self$dataset$col.names.to.model)
     g <- igraph::add_edges(g, array(t(as.matrix(edges))))
     self$causal.graph <- g

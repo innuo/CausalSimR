@@ -50,7 +50,7 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
   },
 
   sample = function(n, do = list()){
-    sample.df <- data.frame(matrix(NA, nrow=n, ncol=self$dataset$ncols))
+    sample.df <- data.frame(matrix(NA, nrow=n, ncol=self$dataset$ncols()))
     names(sample.df) <- self$dataset$col.names.to.model
 
     for(v in self$structure$vars.topo.sorted){

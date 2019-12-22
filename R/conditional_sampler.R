@@ -75,8 +75,9 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
 
   .glm_sampler = function(){
     model <- list()
-    model$model = dglm_sampler(self$y.var, self$x.vars, self$options,
-                                 self$dataset$data)
+    dataset_ids <- self$dataset$matching_dataset_ids(c(self$yvar, self$x.vars))
+    data <- self$dataset$dataset_from_ids(dataset_ids)
+    model$model = dglm_sampler(self$y.var, self$x.vars, self$options,data)
     class(model) <- "DGLM"
     model
   },
