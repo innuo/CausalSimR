@@ -29,30 +29,34 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     self$structure$learn_structure()
   },
 
-  learn_samplers = function(){
-    for(v in self$dataset$col.names.to.model){
-      self$conditional.samplers[[v]] <- ConditionalSampler$new(self$dataset,
-                                                               y.var = v,
-                                                               x.vars=self$structure$parents[[v]],
-                                                               options=options)
-      self$markov.blanket.samplers[[v]] <- ConditionalSampler$new(self$dataset,
-                                                               y.var = v,
-                                                               x.vars=self$structure$markov.blanket[[v]],
-                                                               options=options)
+  learn_sampler = function(v, options){
+    self$conditional.samplers[[v]] <- ConditionalSampler$new(self$dataset,
+                                                             y.var = v,
+                                                             x.vars=self$structure$parents[[v]],
+                                                             options=options)
+    self$markov.blanket.samplers[[v]] <- ConditionalSampler$new(self$dataset,
+                                                                y.var = v,
+                                                                x.vars=self$structure$markov.blanket[[v]],
+                                                                options=options)
 
-    }
-    for(v in self$dataset$col.names.to.model){
-      self$conditional.samplers[[v]]$learn()
-      self$markov.blanket.samplers[[v]]$learn()
+    self$conditional.samplers[[v]]$learn()
+    self$markov.blanket.samplers[[v]]$learn()
+  },
+
+  learn_samplers = function(options=NULL){
+    for(v in self$dataset$col.names.to.model()){
+      self$learn_sampler(v, options)
     }
   },
 
   sample = function(n, do = list()){
-    sample.df <- data.frame(matrix(NA, nrow=n, ncol=self$dataset$ncols))
-    names(sample.df) <- self$dataset$col.names.to.model
+    sample.df <- data.frame(matrix(NA, nrow=n, ncol=self$dataset$ncols()))
+    names(sample.df) <- self$dataset$col.names.to.model()
+
     for(v in self$structure$vars.topo.sorted){
-      if(is.null(do[[v]]))
+      if(is.null(do[[v]])){
         sample.df[[v]] <- self$dataset$make_column(self$conditional.samplers[[v]]$draw(sample.df), v)
+      }
       else{
         sample.df[[v]] <- self$dataset$make_column(rep(do[[v]], n), v)
       }

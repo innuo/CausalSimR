@@ -10,15 +10,23 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   initialize = function(dataset, y.var, x.vars = NULL, options = NULL) {
     self$dataset <- dataset
     self$y.var <- y.var
-    self$y.type <- self$dataset$col.types[y.var]
+    self$y.type <- self$dataset$col.types[[y.var]]
     self$x.vars <- x.vars
+    if(is.null(options)){
+      self$options <- list(mean.degree = 2,
+                     mean.model.family=gaussian,
+                     var.degree = 2,
+                     var.model.link="log")
+    }
+    else self$options <- options
+  },
+
+  options_from_list = function(options){
     self$options <- options
   },
 
   learn = function(){
-    #learn.method <- self$.rf_sampler
-    learn.method <- self$.kernelized_sampler
-    #learn.method <- self$.nn_sampler
+    learn.method <- self$.glm_sampler
     if(length(self$x.vars) == 0){
       if(self$y.type == "numeric")
         learn.method <-  self$.quantile_sampler
@@ -30,7 +38,6 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   },
 
   draw = function(...){
-    #draw.method <- self$.draw.RF
     draw.method <- self$.draw.generic
     if(class(self$model) == "Factor")
       draw.method <- self$.draw.Factor
@@ -61,65 +68,22 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   },
 
   .draw.Factor = function(parent.data){
-    #browser()
     n <- nrow(parent.data)
     y <- .sample.vec(self$model$table[,1], size = n, replace=TRUE, prob=self$model$table$Freq)
     y
   },
 
-  .nn_sampler = function(){
+  .glm_sampler = function(){
     model <- list()
-    formula.string <- paste0(self$y.var, " ~ ", paste0(self$x.vars, collapse="+"), "-1")
-    model$model <- simple_nn_sampler(as.formula(formula.string), self$dataset$data)
-    class(model) <- "NN"
-    model
-  },
-
-  .kernelized_sampler = function(){
-    model <- list()
-    formula.string <- paste0(self$y.var, " ~ ", paste0(self$x.vars, collapse="+"), "-1")
-    model$model <- kernelized_sampler(as.formula(formula.string), self$dataset$data)
-    class(model) <- "KS"
+    dataset_ids <- self$dataset$matching_dataset_ids(c(self$yvar, self$x.vars))
+    data <- self$dataset$dataset_from_ids(dataset_ids)
+    model$model = dglm_sampler(self$y.var, self$x.vars, self$options,data)
+    class(model) <- "DGLM"
     model
   },
 
   .draw.generic = function(parent.data){
     y <- predict(self$model$model, parent.data)
-    y
-  },
-  #TODO: read from options
-  .rf_sampler = function(){
-    model <- list()
-    formula.string <- paste0(self$y.var, " ~ ", paste0(self$x.vars, collapse="+"))
-    model$rfm <- ranger::ranger(as.formula(formula.string), data=self$dataset$data,
-                  sample.fraction = min(1000/self$dataset$nrows, 1),
-                  num.trees = min(length(self$x.vars) * 30, 100),
-                  min.node.size = min(2, ceiling(log(self$dataset$nrows))),
-                  mtry=min(3, length(self$x.vars)))
-
-    model$terminal.node.matrix <- predict(model$rfm, self$dataset$data, type="terminalNodes")$predictions
-    model$y.train <- self$dataset$data[[self$y.var]]
-    class(model) <- "RF"
-    model
-
-  },
-
-  .draw.RF = function(parent.data){
-    pred <- ranger:::predict.ranger(self$model$rfm, parent.data, type="terminalNodes")
-    sample.trees <- .sample.vec(1:pred$num.trees, nrow(parent.data), replace=T)
-    sample.trees.leaves <- cbind(sample.trees, pred$predictions[cbind(1:nrow(parent.data), sample.trees)])
-
-    sample.from.leaf= function(i){
-      tree <- sample.trees.leaves[i,1]
-      leaf <- sample.trees.leaves[i,2]
-      y.train.leaf <- self$model$y.train[self$model$terminal.node.matrix[,tree] == leaf]
-      ys <- .sample.vec(y.train.leaf, 1)
-      ys
-
-    }
-    y <- do.call(c, lapply(1:nrow(parent.data), sample.from.leaf))
-
-    if(self$y.type == "factor") y <- factor(levels(self$model$y.train)[y], levels=levels(self$model$y.train))
     y
   }
 
