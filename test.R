@@ -51,10 +51,10 @@ missing_test <- function(train.sample.size = 1000){
   sim$plot()
 
   filled.gibbs <- sim$fill_gibbs(missing.data)
-  filled.mice <- sim$dataset$data
+  filled.mice <- sim$dataset$filled.data
 
-  diagnostics(data, filled.gibbs, missing.data, "Gibbs")
-  diagnostics(data, filled.mice, missing.data, "MICE")
+  #diagnostics(data, filled.gibbs, missing.data, "Gibbs")
+  #diagnostics(data, filled.mice, missing.data, "MICE")
 }
 
 

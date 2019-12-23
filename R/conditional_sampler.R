@@ -49,14 +49,20 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   },
 
   .quantile_sampler = function(){
-    model <- list(vec=self$dataset$data[[self$y.var]])
+    dataset_ids <- self$dataset$matching_dataset_ids(c(self$y.var, self$x.vars))
+    data <- self$dataset$dataset_from_ids(dataset_ids)
+
+    model <- list(vec=data[[self$y.var]])
     class(model) <- "Quantile"
     model
   },
 
   .factor_sampler = function(){
+    dataset_ids <- self$dataset$matching_dataset_ids(c(self$y.var, self$x.vars))
+    data <- self$dataset$dataset_from_ids(dataset_ids)
+
     model <- list()
-    model$table <- as.data.frame(table(self$dataset$data[[self$y.var]]))
+    model$table <- as.data.frame(table(data[[self$y.var]]))
     class(model) <- "Factor"
     model
   },
@@ -75,9 +81,10 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
 
   .glm_sampler = function(){
     model <- list()
-    dataset_ids <- self$dataset$matching_dataset_ids(c(self$yvar, self$x.vars))
+    dataset_ids <- self$dataset$matching_dataset_ids(c(self$y.var, self$x.vars))
     data <- self$dataset$dataset_from_ids(dataset_ids)
-    model$model = dglm_sampler(self$y.var, self$x.vars, self$options,data)
+
+    model$model = dglm_sampler(self$y.var, self$x.vars, self$options, data)
     class(model) <- "DGLM"
     model
   },

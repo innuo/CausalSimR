@@ -13,13 +13,12 @@ CausalStructure <- R6::R6Class("CausalStructure", list(
   },
 
   learn_structure = function(){
-    self$dataset$fill_missing()
-    bn = bnlearn::hc(self$dataset$data)
+    bn = bnlearn::hc(self$dataset$filled.data)
     self$make_structure(bn$arcs)
   },
 
   make_structure = function(edges){
-     g <- igraph::make_empty_graph(n = self$dataset$ncols(), directed=TRUE)
+    g <- igraph::make_empty_graph(n = self$dataset$ncols(), directed=TRUE)
     g <- igraph::set_vertex_attr(g, "name", index=igraph::V(g),
                                  self$dataset$col.names.to.model())
     g <- igraph::add_edges(g, array(t(as.matrix(edges))))
