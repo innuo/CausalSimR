@@ -47,7 +47,7 @@ DataSet <- R6::R6Class("DataSet", list(
     df <- NULL
     for(id in ids){
       if(is.null(df)) df <- self$raw.data[[id]]
-      else df <- rbind(df, self$raw.data[[id]])
+      else df <- plyr::rbind.fill(df, self$raw.data[[id]])
     }
     return (df)
   },
