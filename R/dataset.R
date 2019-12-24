@@ -9,7 +9,8 @@ DataSet <- R6::R6Class("DataSet", list(
   initialize = function(data, options=NULL) {
     self$attach_data(data)
     if(is.null(options))
-      self$options = list(imputed_dataset_size = 1000)
+      self$options = list(minimum_dataset_size_to_learn = 1000,
+                          imputed_dataset_size = 5000)
     else
       self$options = options
   },
@@ -55,8 +56,12 @@ DataSet <- R6::R6Class("DataSet", list(
   matching_dataset_ids = function(vars){
     ids <- numeric(0)
     for(i in 1:length(self$raw.data)){
-      if(!any(is.na(match(vars, names(self$raw.data[[i]])))))
-        ids <- c(ids, i)
+      if(!any(is.na(match(vars, names(self$raw.data[[i]]))))){
+        #check if raw dataset has enough samples
+         if(sum(complete.cases(subset(self$raw.data[[i]], select=vars))) >=
+                           self$options$minimum_dataset_size_to_learn)
+            ids <- c(ids, i)
+      }
     }
     return(ids)
   },
@@ -73,17 +78,25 @@ DataSet <- R6::R6Class("DataSet", list(
     self$data <- na.omit(self$data)
   },
 
-  fill_missing = function(method="cart", iter=10){
+  fill_missing = function(method="cart", iter=5){
     nr <- nrow(self$data)
-    self$filled.data <- self$data[sample(1:nr,
-                                 min(self$options$imputed_dataset_size, nr)),]
-    if(any(is.na(self$filled.data))){
-      tmp <- mice::mice(self$data,m=2,maxit=iter,meth=method,seed=1, printFlag = F)
-      self$filled.data <- mice::complete(tmp)
-    }
-    for(i in 1:ncol(self$filled.data)) if(class(self$filled.data[,i]) != "factor") self$filled.data[,i] <- as.numeric(self$filled.data[,i])
+    self$filled.data <- fill_using_mice(self$data[sample(1:nr,
+                                 min(self$options$imputed_dataset_size, nr)),],
+                                 method, iter)
 
   }
 
   )
 )
+
+fill_using_mice <- function(df, method, num.iter){
+  if(any(is.na(df))){
+    tmp <- mice::mice(df,m=2,maxit=num.iter,meth=method,seed=1, printFlag = F)
+    df<- mice::complete(tmp)
+    print(summary(df))
+  }
+  return(df)
+  #for(i in 1:ncol(self$data))
+  #  if(class(self$filled.data[,i]) != "factor") self$filled.data[,i] <- as.numeric(self$filled.data[,i])
+
+}
