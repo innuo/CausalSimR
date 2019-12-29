@@ -5,7 +5,7 @@ Version: 1.0.0
 Author: Harsha Veeramchaneni
 Maintainer: Harsha Veeramachaneni <abc@somewhere.net>
 Description: Just for experimentation
-Imports: R6, bnlearn, ranger, igraph, jsonlite, lhs, mice, plyr, nnet, dglm, stringr
+Depends: R6, bnlearn, ranger, igraph, jsonlite, lhs, mice, dplyr, nnet, dglm, stringr
 License: Mine
 Encoding: UTF-8
 LazyData: true

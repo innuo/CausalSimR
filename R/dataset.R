@@ -35,7 +35,7 @@ DataSet <- R6::R6Class("DataSet", list(
     }
 
     tmp.data <- subset(data, select=col.names.to.model)
-    self$data <- plyr::rbind.fill(self$data, tmp.data)
+    self$data <- dplyr::bind_rows(self$data, tmp.data)
     self$raw.data[[length(self$raw.data)+1]] <- tmp.data
     self$fill_missing()
   },
@@ -48,7 +48,7 @@ DataSet <- R6::R6Class("DataSet", list(
     df <- NULL
     for(id in ids){
       if(is.null(df)) df <- self$raw.data[[id]]
-      else df <- plyr::rbind.fill(df, self$raw.data[[id]])
+      else df <- dplyr::bind_rows(df, self$raw.data[[id]])
     }
     return (df)
   },
@@ -90,8 +90,9 @@ DataSet <- R6::R6Class("DataSet", list(
 )
 
 fill_using_mice <- function(df, method, num.iter){
-  if(any(is.na(df))){
-    tmp <- mice::mice(df,m=2,maxit=num.iter,meth=method,seed=1, printFlag = F)
+   if(any(is.na(df))){
+    tmp <- mice::mice(df,m=2,maxit=num.iter,remove_collinear = FALSE,
+                      meth=method,seed=1, printFlag = F)
     df<- mice::complete(tmp)
     print(summary(df))
   }

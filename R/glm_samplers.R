@@ -1,5 +1,9 @@
 
 dglm_sampler = function(y.var, x.vars, options, data){
+  print("-----------")
+  print(y.var)
+  print(x.vars)
+
   basic.formula <- as.formula(paste0(y.var, " ~ ",
                                      paste0(x.vars, collapse="+"), "-1"))
   X <- model.matrix(basic.formula, data)
