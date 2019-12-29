@@ -53,7 +53,7 @@ DataSet <- R6::R6Class("DataSet", list(
     return (df)
   },
 
-  matching_dataset_ids = function(vars, impose_minimum_size=TRUE){
+  matching_dataset_ids = function(vars, impose.minimum.size=TRUE){
     ids <- numeric(0)
     for(i in 1:length(self$raw.data)){
       if(!any(is.na(match(vars, names(self$raw.data[[i]]))))){
