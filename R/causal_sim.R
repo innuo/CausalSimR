@@ -34,13 +34,13 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
                                                              y.var = v,
                                                              x.vars=self$structure$parents[[v]],
                                                              options=options)
-    self$markov.blanket.samplers[[v]] <- ConditionalSampler$new(self$dataset,
-                                                                y.var = v,
-                                                                x.vars=self$structure$markov.blanket[[v]],
-                                                                options=options)
+    # self$markov.blanket.samplers[[v]] <- ConditionalSampler$new(self$dataset,
+    #                                                             y.var = v,
+    #                                                             x.vars=self$structure$markov.blanket[[v]],
+    #                                                             options=options)
 
     self$conditional.samplers[[v]]$learn()
-    self$markov.blanket.samplers[[v]]$learn()
+    #self$markov.blanket.samplers[[v]]$learn()
   },
 
   learn_samplers = function(options=NULL){
