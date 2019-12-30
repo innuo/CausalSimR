@@ -14,7 +14,7 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
     self$x.vars <- x.vars
     if(is.null(options)){
       self$options <- list(mean.degree = 2,
-                     mean.model.family=gaussian,
+                     mean.model.family="gaussian",
                      var.degree = 2,
                      var.model.link="log")
     }

@@ -1,9 +1,5 @@
 
 dglm_sampler = function(y.var, x.vars, options, data){
-  print("-----------")
-  print(y.var)
-  print(x.vars)
-
   basic.formula <- as.formula(paste0(y.var, " ~ ",
                                      paste0(x.vars, collapse="+"), "-1"))
   X <- model.matrix(basic.formula, data)
@@ -30,11 +26,13 @@ dglm_sampler = function(y.var, x.vars, options, data){
   }
   else{
     model$type <- "regression"
-    #browser()
-    fit <- dglm(mean.model.formula, dformula = var.model.formula,
-                family = options$mean.model.family,
-                dlink = "log", data= data.for.fit,
-                ykeep=FALSE, model=FALSE) #TODO: "log" shit
+
+    fit <- do.call(dglm, list(formula=mean.model.formula,
+                              dformula = var.model.formula,
+                              family = get(options$mean.model.family),
+                              dlink = options$var.model.link,
+                              data= data.for.fit,
+                              ykeep=FALSE, model=FALSE))
 
     model$fit <- strip_glm(fit)
     model$fit$dispersion.fit <- strip_glm(fit$dispersion.fit)
