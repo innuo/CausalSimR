@@ -56,7 +56,7 @@ DataSet <- R6::R6Class("DataSet", list(
       if(is.null(df)) {
         df <- tmp.df[non.missing.ids,]
       }
-      else df <- factor_safe_bind_rows(tmp.df[non.missing.ids,], self$raw.data[[id]])
+      else df <- factor_safe_bind_rows(df, tmp.df[non.missing.ids,])
     }
     return (df)
   },
