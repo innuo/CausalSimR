@@ -35,7 +35,10 @@ DataSet <- R6::R6Class("DataSet", list(
     }
 
     tmp.data <- subset(data, select=col.names.to.model)
-    self$data <- dplyr::bind_rows(self$data, tmp.data)
+
+    self$data <- if(is.null(self$data)) tmp.data
+                 else factor_safe_bind_rows(self$data, tmp.data)
+
     self$raw.data[[length(self$raw.data)+1]] <- tmp.data
     self$fill_missing()
   },
@@ -47,8 +50,11 @@ DataSet <- R6::R6Class("DataSet", list(
 
     df <- NULL
     for(id in ids){
-      if(is.null(df)) df <- self$raw.data[[id]]
-      else df <- dplyr::bind_rows(df, self$raw.data[[id]])
+      tmp.df <- self$raw.data[[id]]
+      if(is.null(df)) {
+        df <- tmp.df
+      }
+      else df <- factor_safe_bind_rows(tmp.df, self$raw.data[[id]])
     }
     return (df)
   },
@@ -102,4 +108,18 @@ fill_using_mice <- function(df, method, num.iter){
   #for(i in 1:ncol(self$data))
   #  if(class(self$filled.data[,i]) != "factor") self$filled.data[,i] <- as.numeric(self$filled.data[,i])
 
+}
+
+factor_safe_bind_rows <- function(...){
+  factor.cols <- c()
+  for (d in list(...)){
+    is.f <- unlist(lapply(d, is.factor))
+    factor.cols <- c(factor.cols, names(d)[is.f])
+  }
+
+  df <- suppressWarnings(dplyr::bind_rows(...))
+  for(f in unique(factor.cols))
+    df[[f]] <- as.factor(df[[f]])
+
+  df
 }

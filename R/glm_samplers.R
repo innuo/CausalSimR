@@ -30,6 +30,7 @@ dglm_sampler = function(y.var, x.vars, options, data){
   }
   else{
     model$type <- "regression"
+    #browser()
     fit <- dglm(mean.model.formula, dformula = var.model.formula,
                 family = options$mean.model.family,
                 dlink = "log", data= data.for.fit,

@@ -1,3 +1,15 @@
+single_row_test <- function(){
+  d1 <- read.csv("../CausalSimPy/data/SinglePearlTest1.csv", na.strings=c("NA", ""))
+  d2 <- read.csv("../CausalSimPy/data/SinglePearlTest2.csv", na.strings=c("NA", ""))
+
+  dataset <- DataSet$new(d1)
+
+  dataset$attach_data(d2)
+  sim <- CausalSimModel$new(dataset)
+  sim$learn_structure()
+  sim$plot()
+}
+
 basic_test <- function(){
   full.data <- read.csv("../CausalSimPy/data/5d.csv")
   dataset <- DataSet$new(full.data)
