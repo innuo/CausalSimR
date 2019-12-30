@@ -1,9 +1,14 @@
 
 dglm_sampler = function(y.var, x.vars, options, data){
+  # basic.formula <- as.formula(paste0(y.var, " ~ ",
+  #                                    paste0(x.vars, collapse="+"), "-1"))
   basic.formula <- as.formula(paste0(y.var, " ~ ",
-                                     paste0(x.vars, collapse="+"), "-1"))
-  X <- model.matrix(basic.formula, data)
+                                     paste0(x.vars, collapse="+")))
+
+  X <- model.matrix(basic.formula, data=data)
+  X <- X[, colnames(X) != "(Intercept)", drop=FALSE]
   colnames(X) <- str_replace_all(colnames(X), " ", ".")
+
   y <- model.extract(model.frame(basic.formula, data), "response")
 
   predictor.string <- paste0(colnames(X), collapse=",")
