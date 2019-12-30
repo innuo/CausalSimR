@@ -43,7 +43,8 @@ DataSet <- R6::R6Class("DataSet", list(
     self$fill_missing()
   },
 
-  dataset_from_ids = function(ids){
+  dataset_from_vars = function(vars, impose.minimum.size=TRUE){
+    ids <- self$matching_dataset_ids(vars, impose.minimum.size)
     if (length(ids) == 0) {
       return(self$filled.data)
     }
@@ -51,15 +52,16 @@ DataSet <- R6::R6Class("DataSet", list(
     df <- NULL
     for(id in ids){
       tmp.df <- self$raw.data[[id]]
+      non.missing.ids <- complete.cases(subset(tmp.df, select=vars))
       if(is.null(df)) {
-        df <- tmp.df
+        df <- tmp.df[non.missing.ids,]
       }
-      else df <- factor_safe_bind_rows(tmp.df, self$raw.data[[id]])
+      else df <- factor_safe_bind_rows(tmp.df[non.missing.ids,], self$raw.data[[id]])
     }
     return (df)
   },
 
-  matching_dataset_ids = function(vars, impose.minimum.size=TRUE){
+  matching_dataset_ids = function(vars, impose.minimum.size){
     ids <- numeric(0)
     for(i in 1:length(self$raw.data)){
       if(!any(is.na(match(vars, names(self$raw.data[[i]]))))){
