@@ -44,10 +44,6 @@ dglm_sampler = function(y.var, x.vars, options, data){
                                            y.var, predictor.string, options$mean.degree))
   var.model.formula <- as.formula(sprintf("~ polym(%s, degree=%d, raw=T)",
                                           predictor.string, options$var.degree))
-  # mean.model.formula <- as.formula(sprintf("%s ~ polym(%s, degree=%d, raw=T)",
-  #                                          y.var, predictor.string, 1))
-  # var.model.formula <- as.formula(sprintf("~ polym(%s, degree=%d, raw=T)",
-  #                                         predictor.string, 1))
 
   model <- list(basic.model = ret$basic.model, y.var = y.var)
 
@@ -63,6 +59,10 @@ dglm_sampler = function(y.var, x.vars, options, data){
   }
   else{
     model$type <- "regression"
+
+    predictor.string <- paste0(colnames(X), collapse="+")
+    mean.model.formula <-as.formula(paste("y ~", predictor.string)) #linear models for now
+    var.model.formula <- as.formula(paste("~", predictor.string))
 
     mm.mean <- model.matrix(mean.model.formula, data.for.fit)
     mm.mean <- mm.mean[, colnames(mm.mean) != "(Intercept)", drop=FALSE]
@@ -109,7 +109,8 @@ predict.DGLMSampler = function(model, data){
     y <- factor(y, levels=model$levels)
   }
   else{
-    mf <- as.formula(paste("~", labels(terms(model$mean.model.formula))))
+    predictor.string <- paste(labels(terms(model$mean.model.formula)), collapse="+")
+    mf <- as.formula(paste("~", predictor.string))
     mm.mean <- model.matrix(mf, X)
     mm.mean <- mm.mean[, colnames(mm.mean) != "(Intercept)", drop=FALSE]
 
