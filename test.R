@@ -10,8 +10,8 @@ single_row_test <- function(){
   sim$plot()
 }
 
-basic_test <- function(){
-  full.data <- read.csv("../CausalSimPy/data/5d.csv")
+basic_test <- function(data.file = "../CausalSimPy/data/5d.csv"){
+  full.data <- read.csv(data.file)
   dataset <- DataSet$new(full.data)
   dataset$fill_missing()
   #dataset$drop_missing()
@@ -23,8 +23,11 @@ basic_test <- function(){
 
   df <- sim$sample(10000)
 
-  plot(full.data$Price, full.data$VolumeBought, col="blue")
-  points(df$Price, df$VolumeBought, col="red")
+  if("Price" %in% names(df)){
+    plot(full.data$Price, full.data$VolumeBought, col="blue")
+    points(df$Price, df$VolumeBought, col="red")
+  }
+  df
 
 }
 

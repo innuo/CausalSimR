@@ -30,6 +30,7 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
   },
 
   learn_sampler = function(v, options){
+    print(paste("Learning sampler for", v))
     self$conditional.samplers[[v]] <- ConditionalSampler$new(self$dataset,
                                                              y.var = v,
                                                              x.vars=self$structure$parents[[v]],
