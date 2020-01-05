@@ -20,6 +20,7 @@ basic_test <- function(data.file = "../CausalSimPy/data/5d.csv"){
   sim$learn_structure()
   sim$plot()
   sim$learn_samplers()
+  print(paste("Size =", length(serialize(sim, NULL))))
 
   df <- sim$sample(10000)
 

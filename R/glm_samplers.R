@@ -132,6 +132,10 @@ strip_glm = function(cm) {
   cm$y = c()
   cm$model = c()
 
+  e <- attr(cm$terms, ".Environment")
+  parent.env(e) <- .GlobalEnv
+  rm(list=ls(envir=e), envir=e)
+
   cm$residuals = c()
   cm$fitted.values = c()
   cm$effects = c()
@@ -146,6 +150,7 @@ strip_glm = function(cm) {
   cm$family$aic = c()
   cm$family$validmu = c()
   cm$family$simulate = c()
+
   cm
 }
 
@@ -154,4 +159,14 @@ strip_lmvar <- function(fit){
   fit$X_sigma = c()
   fit$y = c()
   return(fit)
+}
+
+strip_polyreg <- function(fit){
+  fit$fit <- strip_glm(fit$fit)
+
+  e <- attr(fit$modelFormula, ".Environment")
+  parent.env(e) <- .GlobalEnv
+  rm(list=ls(envir=e), envir=e)
+
+  fit
 }
