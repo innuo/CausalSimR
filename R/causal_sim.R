@@ -44,9 +44,14 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     #self$markov.blanket.samplers[[v]]$learn()
   },
 
-  learn_samplers = function(options=NULL){
+  learn_samplers = function(options=NULL, estimate.fit.score=FALSE){
     for(v in self$dataset$col.names.to.model()){
       self$learn_sampler(v, options)
+    }
+    if(estimate.fit.score){
+      df <- self$sample(1000) #TODO: estimate the number of samples needed
+      fit.scores = self$dataset$estimate_fit(df)
+      return(fit.scores)
     }
   },
 

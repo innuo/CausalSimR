@@ -84,6 +84,26 @@ DataSet <- R6::R6Class("DataSet", list(
     v
   },
 
+  estimate_fit = function(df){
+    n <- nrow(df)
+    fit.scores <- rep(NA, length(self$raw.data))
+    for (i in 1:length(self$raw.data)){
+      rd <- na.omit(self$raw.data[[i]])
+      if (nrow(rd) < 100) next
+
+      d1 <- rd[sample(1:nrow(rd), n, replace = T),]
+      d2 <- rd[sample(1:nrow(rd), n, replace = T),]
+
+      ds <- subset(df, selec=names(rd))
+
+      base.score <- exp(-0.05 * (kl_est(d1, d2) + kl_est(d2, d1)))
+      cross.score <- exp(-0.05 * (kl_est(ds, d1) + kl_est(d1, ds)))
+
+      fit.scores[i] <- min(cross.score/base.score, 1)
+    }
+    fit.scores
+  },
+
   drop_missing = function(){
     self$data <- na.omit(self$data)
   },
@@ -124,4 +144,28 @@ factor_safe_bind_rows <- function(...){
     df[[f]] <- as.factor(df[[f]])
 
   df
+}
+
+kl_est <- function(X1, X2,
+                   samp.size.max=min(1000, nrow(X1)),
+                   mtry=ceiling(sqrt(ncol(X1))),
+                   min.node.size=ceiling(log(nrow(X1))),
+                   num.trees=100, ratio.trunc.val=100){
+  X <- rbind(X1, X2)
+  y <- c(rep(0, nrow(X1)), rep(1, nrow(X2)))
+  ret <- ranger(y ~., data = cbind.data.frame(y=y, X=X),
+                classification=TRUE, probability = TRUE,
+                sample.fraction=samp.size.max/nrow(X),
+                mtry=mtry, min.node.size = min.node.size, num.trees=num.trees)
+
+  # P(x|0) / P(x|1) = P(0|x) P(1) / P(1|x) P(0)
+  ratio <- (ret$predictions[,1] / ret$predictions[,2]) * (nrow(X2)/nrow(X1))
+  ratio[ratio > ratio.trunc.val] <- ratio.trunc.val
+  ratio[ratio < 1/ratio.trunc.val] <- 1/ratio.trunc.val
+  log.ratio <- log(ratio)
+
+  divergence <- max(0.5 * (mean(log.ratio[1:nrow(X1)]) -
+                             mean(log.ratio[(nrow(X1)+1):nrow(X)])), 0)
+  divergence
+
 }

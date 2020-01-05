@@ -19,7 +19,8 @@ basic_test <- function(data.file = "../CausalSimPy/data/5d.csv"){
   sim <- CausalSimModel$new(dataset)
   sim$learn_structure()
   sim$plot()
-  sim$learn_samplers()
+  fit.scores <- sim$learn_samplers(estimate.fit.score=TRUE)
+  print(fit.scores)
   print(paste("Size =", length(serialize(sim, NULL))))
 
   df <- sim$sample(10000)
@@ -41,7 +42,8 @@ basic_attach_test <- function(){
   sim <- CausalSimModel$new(dataset)
   sim$learn_structure()
   sim$plot()
-  sim$learn_samplers()
+  fit.scores <- sim$learn_samplers(estimate.fit.score=TRUE)
+  print(fit.scores)
 
   df <- sim$sample(10000)
 
