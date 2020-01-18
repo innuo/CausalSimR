@@ -29,7 +29,7 @@ basic_test <- function(data.file = "../CausalSimPy/data/5d.csv"){
     plot(full.data$Price, full.data$VolumeBought, col="blue")
     points(df$Price, df$VolumeBought, col="red")
   }
-  df
+  sim
 
 }
 

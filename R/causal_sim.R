@@ -70,6 +70,32 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
     sample.df
   },
 
+  counterfactual = function(df, do = list()){
+    if (length(do) == 0) return (df) #nothing to do
+
+    n = nrow(df)
+    cf.df <- data.frame(matrix(NA, nrow=n, ncol=self$dataset$ncols()))
+    names(cf.df) <- self$dataset$col.names.to.model()
+
+    for(v in self$structure$vars.topo.sorted){
+      if(is.null(do[[v]])){
+        y.cf <- self$conditional.samplers[[v]]$predict(cf.df)
+        y.orig <- self$conditional.samplers[[v]]$predict(df)
+        if(self$dataset$col.types[[v]] == "factor" || all(is.na(y.cf)))
+          preds <- df[[v]]
+        else
+          preds <- df[[v]] + y.cf - y.orig
+
+        cf.df[[v]] <- self$dataset$make_column(preds, v)
+      }
+      else{
+        cf.df[[v]] <- self$dataset$make_column(rep(do[[v]], n), v)
+      }
+    }
+    cf.df
+
+  },
+
   fill_gibbs = function(df.missing, num.iter=20){
     nc <- ncol(df.missing)
     cnames <- names(df.missing)

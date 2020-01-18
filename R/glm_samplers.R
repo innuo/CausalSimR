@@ -94,7 +94,7 @@ dglm_sampler = function(y.var, x.vars, options, data){
 }
 
 
-predict.DGLMSampler = function(model, data){
+draw.DGLMSampler = function(model, data){
   options(na.action='na.pass') #often some of the cols are NA
 
   X <- processed.model.matrix(data, model$basic.model)$X

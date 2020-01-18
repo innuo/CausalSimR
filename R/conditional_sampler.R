@@ -35,6 +35,14 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
 
   },
 
+  predict = function(parent.data){
+    if(class(self$model) == "Factor" || class(self$model) == "Quantile")
+      y <- rep(NA, nrow(parent.data))
+    else
+      y <- predict(self$model$model, parent.data)
+    y
+  },
+
   draw = function(...){
     draw.method <- self$.draw.generic
     if(class(self$model) == "Factor")
@@ -94,7 +102,7 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   },
 
   .draw.generic = function(parent.data){
-    y <- predict(self$model$model, parent.data)
+    y <- draw(self$model$model, parent.data)
     y
   }
 
@@ -103,4 +111,8 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
 
 .sample.vec = function(x, ...){
   x[sample(length(x), ...)]
+}
+
+draw <- function(object, ...){
+  UseMethod("draw")
 }

@@ -26,7 +26,7 @@ polyreg_sampler = function(y.var, x.vars, options, data){
     model$mean.fit <- mean.fit
 
     data.for.fit <- subset(data.for.fit, select=c("const", x.vars))
-    data.for.fit$var <- log(abs(residuals)+0.001*sd(y))
+    data.for.fit$var <- log(abs(residuals)+0.02*sd(y))
     var.fit <- polyreg::polyFit(data.for.fit, deg = options$var.degree)
     var.fit <- strip_polyreg(var.fit)
     model$var.fit <- var.fit
@@ -40,7 +40,7 @@ polyreg_sampler = function(y.var, x.vars, options, data){
 }
 
 
-predict.PolyRegSampler = function(model, data){
+draw.PolyRegSampler = function(model, data){
   X <- data.frame(const=0, data)
   eps <- 1e-6
   options(na.action='na.pass') #often some of the cols are NA
@@ -59,6 +59,21 @@ predict.PolyRegSampler = function(model, data){
   y
 }
 
+predict.PolyRegSampler = function(model, data){
+  X <- data.frame(const=0, data)
+  if(nrow(data) == 1)
+    X <- rbind.data.frame(X, X) #more stupid shit
+  options(na.action='na.pass') #often some of the cols are NA
+  if(model$type == "classification"){
+    probs <- predict(model$fit, X)
+    preds <- do.call(c, lapply(1:nrow(data), function(i) which.max(prob=probs[i,])))
+    y <- model$levels[preds]
+  }
+  else{
+    y  <- predict(model$mean.fit, X)
+  }
+  y <- y[1:nrow(data)]
+}
 
 
 predict.MyPolyFit <- function (object, newdata, ...)
