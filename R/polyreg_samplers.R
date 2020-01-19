@@ -66,7 +66,7 @@ predict.PolyRegSampler = function(model, data){
   options(na.action='na.pass') #often some of the cols are NA
   if(model$type == "classification"){
     probs <- predict(model$fit, X)
-    preds <- do.call(c, lapply(1:nrow(data), function(i) which.max(prob=probs[i,])))
+    preds <- do.call(c, lapply(1:nrow(data), function(i) which.max(probs[i,])))
     y <- model$levels[preds]
   }
   else{
