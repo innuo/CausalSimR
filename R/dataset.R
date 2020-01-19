@@ -96,10 +96,10 @@ DataSet <- R6::R6Class("DataSet", list(
 
       ds <- subset(df, select=names(rd))
 
-      base.score <- kl_est(d1, d2) + kl_est(d2, d1)
-      cross.score <- kl_est(ds, d1) + kl_est(d2, ds)
+      base.score <- 0.5*(kl_est(d1, d2) + kl_est(d2, d1))
+      cross.score <- 0.5*(kl_est(ds, d1) + kl_est(d2, ds))
 
-      fit.scores[i] <- min(1/cross.score^(1/ncol(rd)), 1)
+      fit.scores[i] <- cross.score
     }
     fit.scores
   },
@@ -150,7 +150,7 @@ kl_est <- function(X1, X2,
                    samp.size.max=min(1000, nrow(X1)),
                    mtry=ceiling(sqrt(ncol(X1))),
                    min.node.size=ceiling(log(nrow(X1))),
-                   num.trees=100, ratio.trunc.val=100){
+                   num.trees=100, smoothing.term=0.01){
   print(colnames(X1))
   print(colnames(X2))
   X <- rbind(X1, X2)
@@ -158,17 +158,13 @@ kl_est <- function(X1, X2,
   ret <- ranger(y ~., data = cbind.data.frame(y=y, X=X),
                 classification=TRUE, probability = TRUE,
                 sample.fraction=samp.size.max/nrow(X),
-                mtry=mtry, min.node.size = min.node.size, num.trees=num.trees)
+                mtry=mtry, min.node.size = min.node.size, num.trees=num.trees,
+                case.weights = c(rep(1/nrow(X1), nrow(X1)), rep(1/nrow(X2), nrow(X2))))
 
-  # P(x|0) / P(x|1) = P(0|x) P(1) / P(1|x) P(0)
-  ratio <- (ret$predictions[,1] / ret$predictions[,2]) * (nrow(X2)/nrow(X1))
-  ratio[ratio > ratio.trunc.val] <- ratio.trunc.val
-  ratio[ratio < 1/ratio.trunc.val] <- 1/ratio.trunc.val
-  log.ratio <- log(ratio)
 
-  divergence <- max(0.5 * (mean(log.ratio[1:nrow(X1)]) -
-                              mean(log.ratio[(nrow(X1)+1):nrow(X)])), 0)
-  #divergence <- max(mean(log.ratio[1:nrow(X1)]), 0)
-  divergence
+  p1 <- ret$predictions[,1] * (1 - smoothing.term) + 0.5 * smoothing.term
+  p2 <- ret$predictions[,2] * (1 - smoothing.term) + 0.5 * smoothing.term
+  est <- mean(-p1 * log(p1) -p2 * log(p2))/log(2)
 
+  est
 }
