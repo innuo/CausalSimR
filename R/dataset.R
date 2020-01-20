@@ -87,9 +87,10 @@ DataSet <- R6::R6Class("DataSet", list(
   estimate_fit = function(df){
     n <- nrow(df)
     fit.scores <- rep(NA, length(self$raw.data))
+
     for (i in 1:length(self$raw.data)){
       rd <- na.omit(self$raw.data[[i]])
-      if (nrow(rd) < 100) next
+      if (nrow(rd) < 10) next
 
       d1 <- rd[sample(1:nrow(rd), n, replace = T),]
       d2 <- rd[sample(1:nrow(rd), n, replace = T),]
@@ -149,7 +150,7 @@ factor_safe_bind_rows <- function(...){
 kl_est <- function(X1, X2,
                    samp.size.max=min(1000, nrow(X1)),
                    mtry=ceiling(sqrt(ncol(X1))),
-                   min.node.size=ncol(X1)*ceiling(log(nrow(X1))),
+                   min.node.size=ceiling(log(nrow(X1))/2),
                    num.trees=100, smoothing.term=0.01){
   print(colnames(X1))
   print(colnames(X2))
