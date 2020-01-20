@@ -13,10 +13,15 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
     self$y.type <- self$dataset$col.types[[y.var]]
     self$x.vars <- x.vars
     if(is.null(options)){
+      ## Polyreg options
+      #self$options <- list(mean.degree = 1,
+      #               var.degree = 2)
+
+      #dglm options
       self$options <- list(mean.degree = 1,
-                     mean.model.family="gaussian",
-                     var.degree = 1,
-                     var.model.link="log")
+                           mean.model.family="gaussian",
+                           var.degree = 1,
+                           var.model.link="log")
     }
     else self$options <- options
   },
@@ -35,6 +40,14 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
     }
     self$model <- learn.method()
 
+  },
+
+  predict = function(parent.data){
+    if(class(self$model) == "Factor" || class(self$model) == "Quantile")
+      y <- rep(NA, nrow(parent.data))
+    else
+      y <- predict(self$model$model, parent.data)
+    y
   },
 
   draw = function(...){
@@ -86,8 +99,17 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
     model
   },
 
+  .polyreg_sampler = function(){
+    model <- list()
+    data <- self$dataset$dataset_from_vars(c(self$y.var, self$x.vars))
+
+    model$model = polyreg_sampler(self$y.var, self$x.vars, self$options, data)
+    class(model) <- "PolyReg"
+    model
+  },
+
   .draw.generic = function(parent.data){
-    y <- predict(self$model$model, parent.data)
+    y <- draw(self$model$model, parent.data)
     y
   }
 
@@ -96,4 +118,8 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
 
 .sample.vec = function(x, ...){
   x[sample(length(x), ...)]
+}
+
+draw <- function(object, ...){
+  UseMethod("draw")
 }

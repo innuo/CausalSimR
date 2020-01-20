@@ -19,15 +19,21 @@ basic_test <- function(data.file = "../CausalSimPy/data/5d.csv"){
   sim <- CausalSimModel$new(dataset)
   sim$learn_structure()
   sim$plot()
-  sim$learn_samplers()
+  fit.scores <- sim$learn_samplers(estimate.fit.score=TRUE)
+  print(fit.scores)
+  print(paste("Size =", length(serialize(sim, NULL))))
 
   df <- sim$sample(10000)
 
   if("Price" %in% names(df)){
     plot(full.data$Price, full.data$VolumeBought, col="blue")
     points(df$Price, df$VolumeBought, col="red")
+    d <- head(full.data, 1)
+    print(d)
+    print(sim$counterfactual(d, list(Price=100)))
   }
-  df
+
+  sim
 
 }
 
@@ -40,7 +46,8 @@ basic_attach_test <- function(){
   sim <- CausalSimModel$new(dataset)
   sim$learn_structure()
   sim$plot()
-  sim$learn_samplers()
+  fit.scores <- sim$learn_samplers(estimate.fit.score=TRUE)
+  print(fit.scores)
 
   df <- sim$sample(10000)
 

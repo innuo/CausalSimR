@@ -84,6 +84,26 @@ DataSet <- R6::R6Class("DataSet", list(
     v
   },
 
+  estimate_fit = function(df){
+    n <- nrow(df)
+    fit.scores <- rep(NA, length(self$raw.data))
+    for (i in 1:length(self$raw.data)){
+      rd <- na.omit(self$raw.data[[i]])
+      if (nrow(rd) < 100) next
+
+      d1 <- rd[sample(1:nrow(rd), n, replace = T),]
+      d2 <- rd[sample(1:nrow(rd), n, replace = T),]
+
+      ds <- subset(df, select=names(rd))
+
+      base.score <- 0.5*(kl_est(d1, d2) + kl_est(d2, d1))
+      cross.score <- 0.5*(kl_est(ds, d1) + kl_est(d2, ds))
+
+      fit.scores[i] <- cross.score
+    }
+    fit.scores
+  },
+
   drop_missing = function(){
     self$data <- na.omit(self$data)
   },
@@ -124,4 +144,27 @@ factor_safe_bind_rows <- function(...){
     df[[f]] <- as.factor(df[[f]])
 
   df
+}
+
+kl_est <- function(X1, X2,
+                   samp.size.max=min(1000, nrow(X1)),
+                   mtry=ceiling(sqrt(ncol(X1))),
+                   min.node.size=ncol(X1)*ceiling(log(nrow(X1))),
+                   num.trees=100, smoothing.term=0.01){
+  print(colnames(X1))
+  print(colnames(X2))
+  X <- rbind(X1, X2)
+  y <- c(rep(0, nrow(X1)), rep(1, nrow(X2)))
+  ret <- ranger(y ~., data = cbind.data.frame(y=y, X=X),
+                classification=TRUE, probability = TRUE,
+                sample.fraction=samp.size.max/nrow(X),
+                mtry=mtry, min.node.size = min.node.size, num.trees=num.trees,
+                case.weights = c(rep(1/nrow(X1), nrow(X1)), rep(1/nrow(X2), nrow(X2))))
+
+
+  p1 <- ret$predictions[,1] * (1 - smoothing.term) + 0.5 * smoothing.term
+  p2 <- ret$predictions[,2] * (1 - smoothing.term) + 0.5 * smoothing.term
+  est <- mean(-p1 * log(p1) -p2 * log(p2))/log(2)
+
+  est
 }

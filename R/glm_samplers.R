@@ -55,7 +55,9 @@ dglm_sampler = function(y.var, x.vars, options, data){
     model$levels <- levels(y)
     fit <- multinom(mean.model.formula,
                     data = data.for.fit)
-    model$fit <- strip_glm(fit)
+    fit.trunc <- strip_glm(fit) #don't quite understand what the GlobalEnv stuff is doing which removes model from the environment
+    model <- list(basic.model = ret$basic.model, y.var = y.var)
+    model$fit <- fit.trunc
   }
   else{
     model$type <- "regression"
@@ -94,7 +96,7 @@ dglm_sampler = function(y.var, x.vars, options, data){
 }
 
 
-predict.DGLMSampler = function(model, data){
+draw.DGLMSampler = function(model, data){
   options(na.action='na.pass') #often some of the cols are NA
 
   X <- processed.model.matrix(data, model$basic.model)$X
@@ -128,9 +130,48 @@ predict.DGLMSampler = function(model, data){
   y
 }
 
+
+predict.DGLMSampler = function(model, data){
+  options(na.action='na.pass') #often some of the cols are NA
+
+  X <- processed.model.matrix(data, model$basic.model)$X
+  if(nrow(X) == 1)
+    X <- rbind(X, X)
+
+  if(model$type == "classification"){
+    probs <- predict(model$fit, X, type="prob")
+    if(is.null(dim(probs))){
+      probs <- cbind(1-probs, probs)
+      colnames(probs) <- model$levels
+    }
+    preds <- do.call(c, lapply(1:nrow(data), function(i) which.max(probs[i,])))
+    y <- model$levels[preds]
+  }
+  else{
+    predictor.string <- paste(labels(terms(model$mean.model.formula)), collapse="+")
+    mf <- as.formula(paste("~", predictor.string))
+    mm.mean <- model.matrix(mf, X)
+    mm.mean <- mm.mean[, colnames(mm.mean) != "(Intercept)", drop=FALSE]
+
+    mm.sigma <- model.matrix(model$var.model.formula, X)
+    mm.sigma <- mm.sigma[, colnames(mm.sigma) != "(Intercept)", drop=FALSE]
+
+    preds <- predict(model$fit, X_mu=mm.mean, X_sigma=mm.sigma)
+    y <- preds[,1]
+
+  }
+  y <- y[1:nrow(data)]
+  y
+}
+
+
 strip_glm = function(cm) {
   cm$y = c()
   cm$model = c()
+
+  e <- attr(cm$terms, ".Environment")
+  parent.env(e) <- .GlobalEnv
+  rm(list=ls(envir=e), envir=e)
 
   cm$residuals = c()
   cm$fitted.values = c()
@@ -146,6 +187,7 @@ strip_glm = function(cm) {
   cm$family$aic = c()
   cm$family$validmu = c()
   cm$family$simulate = c()
+
   cm
 }
 
@@ -154,4 +196,14 @@ strip_lmvar <- function(fit){
   fit$X_sigma = c()
   fit$y = c()
   return(fit)
+}
+
+strip_polyreg <- function(fit){
+  fit$fit <- strip_glm(fit$fit)
+
+  e <- attr(fit$modelFormula, ".Environment")
+  parent.env(e) <- .GlobalEnv
+  rm(list=ls(envir=e), envir=e)
+
+  fit
 }
