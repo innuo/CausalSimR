@@ -56,7 +56,7 @@ dglm_sampler = function(y.var, x.vars, options, data){
     fit <- multinom(mean.model.formula,
                     data = data.for.fit)
     fit.trunc <- strip_glm(fit) #don't quite understand what the GlobalEnv stuff is doing which removes model from the environment
-    model <- list(basic.model = ret$basic.model, y.var = y.var)
+    #model <- list(basic.model = ret$basic.model, y.var = y.var)
     model$fit <- fit.trunc
   }
   else{
@@ -169,9 +169,9 @@ strip_glm = function(cm) {
   cm$y = c()
   cm$model = c()
 
-  e <- attr(cm$terms, ".Environment")
-  parent.env(e) <- .GlobalEnv
-  rm(list=ls(envir=e), envir=e)
+  #e <- attr(cm$terms, ".Environment")
+  #parent.env(e) <- .GlobalEnv
+  #rm(list=ls(envir=e), envir=e)
 
   cm$residuals = c()
   cm$fitted.values = c()
