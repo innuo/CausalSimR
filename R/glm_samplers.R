@@ -128,6 +128,41 @@ draw.DGLMSampler = function(model, data){
   y
 }
 
+
+predict.DGLMSampler = function(model, data){
+  options(na.action='na.pass') #often some of the cols are NA
+
+  X <- processed.model.matrix(data, model$basic.model)$X
+  if(nrow(X) == 1)
+    X <- rbind(X, X)
+
+  if(model$type == "classification"){
+    probs <- predict(model$fit, X, type="prob")
+    if(is.null(dim(probs))){
+      probs <- cbind(1-probs, probs)
+      colnames(probs) <- model$levels
+    }
+    preds <- do.call(c, lapply(1:nrow(data), function(i) which.max(probs[i,])))
+    y <- model$levels[preds]
+  }
+  else{
+    predictor.string <- paste(labels(terms(model$mean.model.formula)), collapse="+")
+    mf <- as.formula(paste("~", predictor.string))
+    mm.mean <- model.matrix(mf, X)
+    mm.mean <- mm.mean[, colnames(mm.mean) != "(Intercept)", drop=FALSE]
+
+    mm.sigma <- model.matrix(model$var.model.formula, X)
+    mm.sigma <- mm.sigma[, colnames(mm.sigma) != "(Intercept)", drop=FALSE]
+
+    preds <- predict(model$fit, X_mu=mm.mean, X_sigma=mm.sigma)
+    y <- preds[,1]
+
+  }
+  y <- y[1:nrow(data)]
+  y
+}
+
+
 strip_glm = function(cm) {
   cm$y = c()
   cm$model = c()

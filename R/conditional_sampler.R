@@ -13,8 +13,15 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
     self$y.type <- self$dataset$col.types[[y.var]]
     self$x.vars <- x.vars
     if(is.null(options)){
-      self$options <- list(mean.degree = 2,
-                     var.degree = 2)
+      ## Polyreg options
+      #self$options <- list(mean.degree = 1,
+      #               var.degree = 2)
+
+      #dglm options
+      self$options <- list(mean.degree = 1,
+                           mean.model.family="gaussian",
+                           var.degree = 1,
+                           var.model.link="log")
     }
     else self$options <- options
   },
@@ -24,7 +31,7 @@ ConditionalSampler <- R6::R6Class("ConditionalSampler", list(
   },
 
   learn = function(){
-    learn.method <- self$.polyreg_sampler
+    learn.method <- self$.glm_sampler
     if(length(self$x.vars) == 0){
       if(self$y.type == "numeric")
         learn.method <-  self$.quantile_sampler
