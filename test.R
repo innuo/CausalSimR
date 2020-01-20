@@ -28,7 +28,11 @@ basic_test <- function(data.file = "../CausalSimPy/data/5d.csv"){
   if("Price" %in% names(df)){
     plot(full.data$Price, full.data$VolumeBought, col="blue")
     points(df$Price, df$VolumeBought, col="red")
+    d <- head(full.data, 1)
+    print(d)
+    print(sim$counterfactual(d, list(Price=100)))
   }
+
   sim
 
 }

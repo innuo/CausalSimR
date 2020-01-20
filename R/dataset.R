@@ -149,7 +149,7 @@ factor_safe_bind_rows <- function(...){
 kl_est <- function(X1, X2,
                    samp.size.max=min(1000, nrow(X1)),
                    mtry=ceiling(sqrt(ncol(X1))),
-                   min.node.size=ceiling(log(nrow(X1))),
+                   min.node.size=ncol(X1)*ceiling(log(nrow(X1))),
                    num.trees=100, smoothing.term=0.01){
   print(colnames(X1))
   print(colnames(X2))

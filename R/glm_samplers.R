@@ -55,7 +55,9 @@ dglm_sampler = function(y.var, x.vars, options, data){
     model$levels <- levels(y)
     fit <- multinom(mean.model.formula,
                     data = data.for.fit)
-    model$fit <- strip_glm(fit)
+    fit.trunc <- strip_glm(fit) #don't quite understand what the GlobalEnv stuff is doing which removes model from the environment
+    model <- list(basic.model = ret$basic.model, y.var = y.var)
+    model$fit <- fit.trunc
   }
   else{
     model$type <- "regression"
