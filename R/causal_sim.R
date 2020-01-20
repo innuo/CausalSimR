@@ -49,7 +49,7 @@ CausalSimModel <- R6::R6Class("CausalSimModel", list(
       self$learn_sampler(v, options)
     }
     if(estimate.fit.score){
-      df <- self$sample(1000) #TODO: estimate the number of samples needed
+      df <- self$sample(10000) #TODO: estimate the number of samples needed
       fit.scores = self$dataset$estimate_fit(df)
       return(fit.scores)
     }

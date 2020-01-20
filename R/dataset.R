@@ -97,7 +97,7 @@ DataSet <- R6::R6Class("DataSet", list(
 
       ds <- subset(df, select=names(rd))
 
-      base.score <- 0.5*(kl_est(d1, d2) + kl_est(d2, d1))
+      #base.score <- 0.5*(kl_est(d1, d2) + kl_est(d2, d1))
       cross.score <- 0.5*(kl_est(ds, d1) + kl_est(d2, ds))
 
       fit.scores[i] <- cross.score
@@ -150,7 +150,7 @@ factor_safe_bind_rows <- function(...){
 kl_est <- function(X1, X2,
                    samp.size.max=min(1000, nrow(X1)),
                    mtry=ceiling(sqrt(ncol(X1))),
-                   min.node.size=ceiling(log(nrow(X1))/2),
+                   min.node.size=1, #ceiling(log(nrow(X1))/2),
                    num.trees=100, smoothing.term=0.01){
   print(colnames(X1))
   print(colnames(X2))
