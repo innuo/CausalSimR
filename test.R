@@ -1,3 +1,4 @@
+# Does this row work
 single_row_test <- function(){
   d1 <- read.csv("../CausalSimPy/data/SinglePearlTest1.csv", na.strings=c("NA", ""))
   d2 <- read.csv("../CausalSimPy/data/SinglePearlTest2.csv", na.strings=c("NA", ""))
