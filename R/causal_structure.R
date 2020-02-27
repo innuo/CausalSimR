@@ -13,7 +13,12 @@ CausalStructure <- R6::R6Class("CausalStructure", list(
   },
 
   learn_structure = function(){
-    bn = bnlearn::hc(self$dataset$filled.data)
+    bn = bnlearn::hc(self$dataset$filled.data, maxp = 2) ## whitelist, blacklist, maxp -- kludgy way of getting sparsity
+    # whitelist	a data frame with two columns (optionally labeled "from" and "to"), containing a set of arcs to be included in the graph.
+    # blacklist: a data frame with two columns (optionally labeled "from" and "to"), containing a set of arcs not to be included in the graph.
+    # avoid all inbound in, and outbound column1: out
+    # maxp: the maximum number of parents for a node. The default value is Inf.
+    # making maxp = 2, creates a sparser graph
     self$make_structure(bn$arcs)
   },
 
