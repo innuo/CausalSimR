@@ -156,16 +156,17 @@ kl_est <- function(X1, X2,
   print(colnames(X2))
   X <- rbind(X1, X2)
   y <- c(rep(0, nrow(X1)), rep(1, nrow(X2)))
-  ret <- ranger(y ~., data = cbind.data.frame(y=y, X=X),
-                classification=TRUE, probability = TRUE,
-                sample.fraction=samp.size.max/nrow(X),
-                mtry=mtry, min.node.size = min.node.size, num.trees=num.trees,
-                case.weights = c(rep(1/nrow(X1), nrow(X1)), rep(1/nrow(X2), nrow(X2))))
-
-
-  p1 <- ret$predictions[,1] * (1 - smoothing.term) + 0.5 * smoothing.term
-  p2 <- ret$predictions[,2] * (1 - smoothing.term) + 0.5 * smoothing.term
-  est <- mean(-p1 * log(p1) -p2 * log(p2))/log(2)
-
-  est
+  # ret <- ranger(y ~., data = cbind.data.frame(y=y, X=X),
+  #               classification=TRUE, probability = TRUE,
+  #               sample.fraction=samp.size.max/nrow(X),
+  #               mtry=mtry, min.node.size = min.node.size, num.trees=num.trees,
+  #               case.weights = c(rep(1/nrow(X1), nrow(X1)), rep(1/nrow(X2), nrow(X2))))
+  #
+  #
+  # p1 <- ret$predictions[,1] * (1 - smoothing.term) + 0.5 * smoothing.term
+  # p2 <- ret$predictions[,2] * (1 - smoothing.term) + 0.5 * smoothing.term
+  # est <- mean(-p1 * log(p1) -p2 * log(p2))/log(2)
+  #
+  # est
+  0.1
 }
