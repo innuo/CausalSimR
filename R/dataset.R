@@ -5,9 +5,15 @@ DataSet <- R6::R6Class("DataSet", list(
   filled.data = NULL,
   col.types = c(),
   options = NULL,
+  input_vars = NULL,
+  output_vars = NULL,
 
-  initialize = function(data, options=NULL) {
+  initialize = function(data, input_vars=NULL, output_vars=NULL,options=NULL) {
     self$attach_data(data)
+
+    self$input_vars <<- union(intersect(input_vars, names(self$data)), self$input_vars)
+    self$output_vars <<- union(intersect(output_vars, names(self$data)), self$output_vars)
+
     if(is.null(options))
       self$options = list(minimum_dataset_size_to_learn = 1000,
                           imputed_dataset_size = 5000)
@@ -98,7 +104,8 @@ DataSet <- R6::R6Class("DataSet", list(
       ds <- subset(df, select=names(rd))
 
       #base.score <- 0.5*(kl_est(d1, d2) + kl_est(d2, d1))
-      cross.score <- 0.5*(kl_est(ds, d1) + kl_est(d2, ds))
+      #cross.score <- 0.5*(kl_est(ds, d1) + kl_est(d2, ds))
+      cross.score <- 0.1 #TODO
 
       fit.scores[i] <- cross.score
     }
@@ -152,8 +159,8 @@ kl_est <- function(X1, X2,
                    mtry=ceiling(sqrt(ncol(X1))),
                    min.node.size=1, #ceiling(log(nrow(X1))/2),
                    num.trees=100, smoothing.term=0.01){
-  print(colnames(X1))
-  print(colnames(X2))
+  print(summary(X1))
+
   X <- rbind(X1, X2)
   y <- c(rep(0, nrow(X1)), rep(1, nrow(X2)))
   ret <- ranger(y ~., data = cbind.data.frame(y=y, X=X),
