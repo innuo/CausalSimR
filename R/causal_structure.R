@@ -74,7 +74,7 @@ CausalStructure <- R6::R6Class("CausalStructure", list(
 
   from_list = function(graph.list){
     edges <- graph.list$edges
-    if(is.null(edges)) edges <- data.frame(from=c(), to=c())
+    if(is.null(edges) || length(edges) == 0) edges <- data.frame(from=c(), to=c())
     print(edges)
     self$make_structure(edges)
   }
